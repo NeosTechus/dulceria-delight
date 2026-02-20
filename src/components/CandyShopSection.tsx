@@ -1,4 +1,4 @@
-import { MapPin } from 'lucide-react';
+import { MapPin, Camera } from 'lucide-react';
 import { candyItems } from '@/data/menu';
 
 import mazapanImg from '@/assets/candy/mazapan.jpg';
@@ -10,6 +10,17 @@ import duvalinImg from '@/assets/candy/duvalin.jpg';
 import pinataImg from '@/assets/candy/pinata.jpg';
 import veroMangoImg from '@/assets/candy/vero-mango.jpg';
 
+import store1 from '@/assets/store/store-1.jpg';
+import store2 from '@/assets/store/store-2.jpg';
+import store3 from '@/assets/store/store-3.jpg';
+import store4 from '@/assets/store/store-4.jpg';
+import store5 from '@/assets/store/store-5.jpg';
+import store6 from '@/assets/store/store-6.jpg';
+import store7 from '@/assets/store/store-7.jpg';
+import store8 from '@/assets/store/store-8.jpg';
+import store9 from '@/assets/store/store-9.jpg';
+import store10 from '@/assets/store/store-10.jpg';
+
 const candyImages: Record<string, string> = {
   c1: mazapanImg,
   c2: pulparindoImg,
@@ -20,6 +31,19 @@ const candyImages: Record<string, string> = {
   c7: pinataImg,
   c8: veroMangoImg,
 };
+
+const storePhotos = [
+  { src: store1, label: 'Candy Counter' },
+  { src: store3, label: 'Piñata Aisle' },
+  { src: store5, label: 'Party Supplies' },
+  { src: store6, label: 'Mexican Crafts' },
+  { src: store8, label: 'Piñatas Galore' },
+  { src: store9, label: 'Snack Aisle' },
+  { src: store4, label: 'Religious Items' },
+  { src: store7, label: 'Mini Collectibles' },
+  { src: store10, label: 'Fresh Desserts' },
+  { src: store2, label: 'Store Overview' },
+];
 
 const CandyShopSection = () => {
   return (
@@ -60,6 +84,36 @@ const CandyShopSection = () => {
               </div>
             </div>
           ))}
+        </div>
+
+        {/* Store Photo Gallery */}
+        <div className="mt-16 mb-12">
+          <div className="flex items-center gap-2 justify-center mb-8">
+            <Camera size={24} className="text-primary" />
+            <h3 className="text-2xl md:text-3xl font-fredoka text-foreground">Inside Our Store</h3>
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
+            {storePhotos.map((photo, i) => (
+              <div
+                key={i}
+                className={`group relative overflow-hidden rounded-xl cursor-pointer ${
+                  i === 0 || i === 4 ? 'md:col-span-1 lg:row-span-2 lg:col-span-2' : ''
+                }`}
+              >
+                <div className={`${i === 0 || i === 4 ? 'aspect-square' : 'aspect-[4/3]'} overflow-hidden`}>
+                  <img
+                    src={photo.src}
+                    alt={photo.label}
+                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                    loading="lazy"
+                  />
+                </div>
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                  <span className="absolute bottom-3 left-3 text-white font-fredoka text-sm">{photo.label}</span>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
 
         <div className="text-center mt-12">
