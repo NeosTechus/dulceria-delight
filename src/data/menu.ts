@@ -45,6 +45,7 @@ export interface CandyItem {
   description: string;
   emoji: string;
   tag: string;
+  image?: string;
 }
 
 export const candyItems: CandyItem[] = [
