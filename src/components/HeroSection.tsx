@@ -1,3 +1,4 @@
+import kitchenImg from '@/assets/kitchen-counter.jpg';
 import heroBg from '@/assets/hero-bg.jpg';
 import { ChevronDown } from 'lucide-react';
 
@@ -10,7 +11,7 @@ const HeroSection = () => {
     <section id="hero" className="relative min-h-screen flex items-center justify-center overflow-hidden">
       <div
         className="absolute inset-0 bg-cover bg-center"
-        style={{ backgroundImage: `url(${heroBg})` }}
+        style={{ backgroundImage: `url(${kitchenImg})` }}
       />
       <div className="absolute inset-0 bg-fiesta-dark/60" />
 
