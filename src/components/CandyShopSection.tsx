@@ -20,6 +20,7 @@ import store7 from '@/assets/store/store-7.jpg';
 import store8 from '@/assets/store/store-8.jpg';
 import store9 from '@/assets/store/store-9.jpg';
 import store10 from '@/assets/store/store-10.jpg';
+import store11 from '@/assets/store/store-11.jpg';
 
 const candyImages: Record<string, string> = {
   c1: mazapanImg,
@@ -33,6 +34,7 @@ const candyImages: Record<string, string> = {
 };
 
 const storePhotos = [
+  { src: store11, label: 'Juice & Food Counter' },
   { src: store1, label: 'Candy Counter' },
   { src: store3, label: 'Piñata Aisle' },
   { src: store5, label: 'Party Supplies' },
