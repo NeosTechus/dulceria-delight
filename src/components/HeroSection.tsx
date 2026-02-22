@@ -1,8 +1,11 @@
 import heroBg from '@/assets/hero-bg.jpg';
 import { ChevronDown } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 const HeroSection = () => {
+  const { t } = useLanguage();
+
   const scrollToNext = () => {
     document.getElementById('highlights')?.scrollIntoView({ behavior: 'smooth' });
   };
@@ -25,16 +28,16 @@ const HeroSection = () => {
 
       <div className="relative z-10 text-center px-4 max-w-4xl animate-fade-in">
         <span className="inline-block bg-primary-foreground/15 backdrop-blur-sm text-primary-foreground/90 text-sm font-bold px-4 py-1.5 rounded-full border border-primary-foreground/20 mb-6">
-          📍 Cherokee Street, St. Louis
+          {t('hero.location')}
         </span>
         <h1 className="text-5xl md:text-7xl lg:text-8xl font-fredoka text-primary-foreground mb-4 drop-shadow-lg">
           Dulceria Medina
         </h1>
         <p className="text-xl md:text-2xl text-primary-foreground/90 font-nunito font-semibold mb-2">
-          🇲🇽 Mexican Candy • Piñatas • Fresh Kitchen
+          {t('hero.subtitle')}
         </p>
         <p className="text-lg text-primary-foreground/70 font-nunito mb-10 max-w-xl mx-auto">
-          St. Louis's favorite spot for authentic Mexican treats & flavors
+          {t('hero.desc')}
         </p>
 
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -42,13 +45,13 @@ const HeroSection = () => {
             to="/menu"
             className="bg-gradient-fiesta text-primary-foreground font-bold text-lg px-8 py-4 rounded-full shadow-fiesta hover:scale-105 transition-transform"
           >
-            🍽️ Order Now
+            {t('hero.orderNow')}
           </Link>
           <Link
             to="/candy-shop"
             className="bg-primary-foreground/20 backdrop-blur-sm text-primary-foreground font-bold text-lg px-8 py-4 rounded-full border-2 border-primary-foreground/30 hover:bg-primary-foreground/30 transition-colors"
           >
-            🪅 Explore Candy Shop
+            {t('hero.exploreCandyShop')}
           </Link>
         </div>
       </div>
