@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { MapPin, Camera } from 'lucide-react';
 import { candyItems } from '@/data/menu';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 import mazapanImg from '@/assets/candy/mazapan.jpg';
 import pulparindoImg from '@/assets/candy/pulparindo.jpg';
@@ -34,36 +35,34 @@ const candyImages: Record<string, string> = {
   c8: veroMangoImg,
 };
 
-const storePhotos = [
-  { src: store11, label: 'Juice & Food Counter' },
-  { src: store1, label: 'Candy Counter' },
-  { src: store3, label: 'Piñata Aisle' },
-  { src: store5, label: 'Party Supplies' },
-  { src: store6, label: 'Mexican Crafts' },
-  { src: store8, label: 'Piñatas Galore' },
-  { src: store9, label: 'Snack Aisle' },
-  { src: store4, label: 'Religious Items' },
-  { src: store7, label: 'Mini Collectibles' },
-  { src: store10, label: 'Fresh Desserts' },
-  { src: store2, label: 'Store Overview' },
+const storePhotoKeys = [
+  'store.juiceCounter', 'store.candyCounter', 'store.pinataAisle',
+  'store.partySupplies', 'store.mexicanCrafts', 'store.pinatasGalore',
+  'store.snackAisle', 'store.religiousItems', 'store.miniCollectibles',
+  'store.freshDesserts', 'store.storeOverview',
 ];
+
+const storePhotoSrcs = [store11, store1, store3, store5, store6, store8, store9, store4, store7, store10, store2];
 
 const allTags = ['All', ...Array.from(new Set(candyItems.map((i) => i.tag)))];
 
 const CandyShopSection = () => {
   const [activeTag, setActiveTag] = useState('All');
+  const { t } = useLanguage();
 
   const filtered = activeTag === 'All' ? candyItems : candyItems.filter((i) => i.tag === activeTag);
+
+  const storePhotos = storePhotoSrcs.map((src, i) => ({ src, label: t(storePhotoKeys[i]) }));
 
   return (
     <section id="candy" className="py-20 bg-background">
       <div className="container mx-auto px-4">
         <div className="text-center mb-14">
           <h2 className="text-4xl md:text-5xl font-fredoka text-foreground mb-3">
-            🪅 Candy Shop & Piñatas
+            {t('candy.title')}
           </h2>
           <p className="text-lg text-muted-foreground font-nunito max-w-2xl mx-auto">
-            Discover hundreds of authentic Mexican candies, party supplies, and handmade piñatas. Come visit us in store!
+            {t('candy.desc')}
           </p>
         </div>
 
@@ -79,13 +78,13 @@ const CandyShopSection = () => {
                   : 'bg-card text-foreground border border-border hover:border-primary/40'
               }`}
             >
-              {tag}
+              {tag === 'All' ? t('candy.all') : tag}
             </button>
           ))}
         </div>
 
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
-          {filtered.map((item, i) => (
+          {filtered.map((item) => (
             <div
               key={item.id}
               className="group bg-card rounded-xl border border-border overflow-hidden hover:shadow-fiesta-orange hover:-translate-y-1 transition-all duration-300"
@@ -105,7 +104,7 @@ const CandyShopSection = () => {
                 <h3 className="font-fredoka text-lg text-foreground mb-1">{item.name}</h3>
                 <p className="text-sm text-muted-foreground mb-3">{item.description}</p>
                 <span className="inline-flex items-center gap-1 text-sm font-bold text-accent">
-                  <MapPin size={14} /> View in Store
+                  <MapPin size={14} /> {t('candy.viewInStore')}
                 </span>
               </div>
             </div>
@@ -116,7 +115,7 @@ const CandyShopSection = () => {
         <div className="mt-16 mb-12">
           <div className="flex items-center gap-2 justify-center mb-8">
             <Camera size={24} className="text-primary" />
-            <h3 className="text-2xl md:text-3xl font-fredoka text-foreground">Inside Our Store</h3>
+            <h3 className="text-2xl md:text-3xl font-fredoka text-foreground">{t('candy.insideStore')}</h3>
           </div>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
             {storePhotos.map((photo, i) => (
@@ -144,8 +143,8 @@ const CandyShopSection = () => {
 
         <div className="text-center mt-12">
           <div className="inline-block bg-muted rounded-2xl px-8 py-5">
-            <p className="font-fredoka text-xl text-foreground mb-1">📍 Visit Us for the Full Selection!</p>
-            <p className="text-muted-foreground">100s more candies, piñatas & party supplies in store</p>
+            <p className="font-fredoka text-xl text-foreground mb-1">{t('candy.visitUs')}</p>
+            <p className="text-muted-foreground">{t('candy.visitDesc')}</p>
           </div>
         </div>
       </div>

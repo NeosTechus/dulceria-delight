@@ -1,19 +1,21 @@
 import { useState } from 'react';
 import { Plus } from 'lucide-react';
-import { menuItems, type MenuItem, type CartItem } from '@/data/menu';
+import { menuItems, type MenuItem } from '@/data/menu';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface RestaurantMenuProps {
   onAddToCart: (item: MenuItem) => void;
 }
 
-const categoryInfo = {
-  jugos: { label: '🍊 Jugos Naturales', desc: 'Fresh-squeezed juices & aguas frescas' },
-  tortas: { label: '🥪 Tortas', desc: 'Authentic Mexican sandwiches' },
-  snacks: { label: '🌽 Snacks', desc: 'Street-style bites & treats' },
-} as const;
-
 const RestaurantMenu = ({ onAddToCart }: RestaurantMenuProps) => {
   const [activeTab, setActiveTab] = useState<'jugos' | 'tortas' | 'snacks'>('jugos');
+  const { t } = useLanguage();
+
+  const categoryInfo = {
+    jugos: { label: t('menu.jugos.label'), desc: t('menu.jugos.desc') },
+    tortas: { label: t('menu.tortas.label'), desc: t('menu.tortas.desc') },
+    snacks: { label: t('menu.snacks.label'), desc: t('menu.snacks.desc') },
+  };
 
   const tabs: Array<'jugos' | 'tortas' | 'snacks'> = ['jugos', 'tortas', 'snacks'];
   const filtered = menuItems.filter((i) => i.category === activeTab);
@@ -23,14 +25,13 @@ const RestaurantMenu = ({ onAddToCart }: RestaurantMenuProps) => {
       <div className="container mx-auto px-4">
         <div className="text-center mb-12">
           <h2 className="text-4xl md:text-5xl font-fredoka text-foreground mb-3">
-            🍽️ Fresh Kitchen Menu
+            {t('menu.title')}
           </h2>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Made fresh daily — order online for pickup!
+            {t('menu.desc')}
           </p>
         </div>
 
-        {/* Tabs */}
         <div className="flex justify-center gap-2 mb-10 flex-wrap">
           {tabs.map((tab) => (
             <button
@@ -65,7 +66,7 @@ const RestaurantMenu = ({ onAddToCart }: RestaurantMenuProps) => {
                 onClick={() => onAddToCart(item)}
                 className="w-full bg-accent text-accent-foreground font-bold py-2.5 rounded-lg flex items-center justify-center gap-2 hover:opacity-90 transition-opacity"
               >
-                <Plus size={18} /> Add to Order
+                <Plus size={18} /> {t('menu.addToOrder')}
               </button>
             </div>
           ))}
