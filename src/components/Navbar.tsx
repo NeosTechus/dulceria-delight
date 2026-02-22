@@ -1,39 +1,41 @@
 import { ShoppingCart, Menu, X } from 'lucide-react';
 import { useState } from 'react';
+import { Link, useLocation } from 'react-router-dom';
 
 interface NavbarProps {
   cartCount: number;
   onCartClick: () => void;
 }
 
+const navLinks = [
+  { label: 'Candy Shop', to: '/candy-shop' },
+  { label: 'Menu', to: '/menu' },
+  { label: 'Kitchen', to: '/kitchen' },
+  { label: 'About', to: '/about' },
+];
+
 const Navbar = ({ cartCount, onCartClick }: NavbarProps) => {
   const [mobileOpen, setMobileOpen] = useState(false);
-
-  const scrollTo = (id: string) => {
-    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
-    setMobileOpen(false);
-  };
+  const location = useLocation();
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-card/90 backdrop-blur-md border-b border-border shadow-sm">
       <div className="container mx-auto flex items-center justify-between py-3 px-4">
-        <button onClick={() => scrollTo('hero')} className="font-fredoka text-2xl text-gradient-fiesta">
+        <Link to="/" className="font-fredoka text-2xl text-gradient-fiesta">
           🪅 Dulceria Medina
-        </button>
+        </Link>
 
         <div className="hidden md:flex items-center gap-8">
-          {[
-            ['Candy Shop', 'candy'],
-            ['Menu', 'menu'],
-            ['Contact', 'contact'],
-          ].map(([label, id]) => (
-            <button
-              key={id}
-              onClick={() => scrollTo(id)}
-              className="font-nunito font-bold text-foreground/80 hover:text-primary transition-colors"
+          {navLinks.map(({ label, to }) => (
+            <Link
+              key={to}
+              to={to}
+              className={`font-nunito font-bold transition-colors ${
+                location.pathname === to ? 'text-primary' : 'text-foreground/80 hover:text-primary'
+              }`}
             >
               {label}
-            </button>
+            </Link>
           ))}
           <button
             onClick={onCartClick}
@@ -66,18 +68,17 @@ const Navbar = ({ cartCount, onCartClick }: NavbarProps) => {
 
       {mobileOpen && (
         <div className="md:hidden bg-card border-t border-border px-4 py-4 flex flex-col gap-3">
-          {[
-            ['Candy Shop', 'candy'],
-            ['Menu', 'menu'],
-            ['Contact', 'contact'],
-          ].map(([label, id]) => (
-            <button
-              key={id}
-              onClick={() => scrollTo(id)}
-              className="font-bold text-foreground/80 text-left py-2"
+          {navLinks.map(({ label, to }) => (
+            <Link
+              key={to}
+              to={to}
+              onClick={() => setMobileOpen(false)}
+              className={`font-bold text-left py-2 ${
+                location.pathname === to ? 'text-primary' : 'text-foreground/80'
+              }`}
             >
               {label}
-            </button>
+            </Link>
           ))}
         </div>
       )}

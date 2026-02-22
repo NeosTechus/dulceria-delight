@@ -1,11 +1,8 @@
 import heroBg from '@/assets/hero-bg.jpg';
 import { ChevronDown } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 const HeroSection = () => {
-  const scrollTo = (id: string) => {
-    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
-  };
-
   return (
     <section id="hero" className="relative min-h-screen flex items-center justify-center overflow-hidden">
       <div
@@ -32,27 +29,27 @@ const HeroSection = () => {
         </p>
 
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
-          <button
-            onClick={() => scrollTo('menu')}
+          <Link
+            to="/menu"
             className="bg-gradient-fiesta text-primary-foreground font-bold text-lg px-8 py-4 rounded-full shadow-fiesta hover:scale-105 transition-transform"
           >
             🍽️ Order Now
-          </button>
-          <button
-            onClick={() => scrollTo('candy')}
+          </Link>
+          <Link
+            to="/candy-shop"
             className="bg-primary-foreground/20 backdrop-blur-sm text-primary-foreground font-bold text-lg px-8 py-4 rounded-full border-2 border-primary-foreground/30 hover:bg-primary-foreground/30 transition-colors"
           >
             🪅 Explore Candy Shop
-          </button>
+          </Link>
         </div>
       </div>
 
-      <button
-        onClick={() => scrollTo('candy')}
+      <Link
+        to="/candy-shop"
         className="absolute bottom-8 left-1/2 -translate-x-1/2 text-primary-foreground/80 animate-bounce-gentle"
       >
         <ChevronDown size={36} />
-      </button>
+      </Link>
     </section>
   );
 };
