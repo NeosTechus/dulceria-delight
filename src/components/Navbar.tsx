@@ -9,7 +9,7 @@ interface NavbarProps {
 
 const navLinks = [
   { label: 'Candy Shop', to: '/candy-shop' },
-  { label: 'Menu', to: '/menu' },
+  { label: 'Ready to Eat', to: '/menu' },
   
   { label: 'About', to: '/about' },
 ];
