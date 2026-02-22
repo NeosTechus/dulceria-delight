@@ -80,8 +80,16 @@
     background-image: linear-gradient(135deg, hsl(var(--fiesta-pink)), hsl(var(--fiesta-orange)));
   }
 
+  .bg-gradient-fiesta-full {
+    background-image: linear-gradient(135deg, hsl(var(--fiesta-pink)), hsl(var(--fiesta-orange)), hsl(var(--fiesta-turquoise)));
+  }
+
   .bg-gradient-fiesta-alt {
     background-image: linear-gradient(135deg, hsl(var(--fiesta-turquoise)), hsl(var(--fiesta-green)));
+  }
+
+  .bg-gradient-warm {
+    background-image: linear-gradient(135deg, hsl(var(--fiesta-yellow) / 0.15), hsl(var(--fiesta-orange) / 0.1));
   }
 
   .shadow-fiesta {
@@ -91,4 +99,53 @@
   .shadow-fiesta-orange {
     box-shadow: 0 8px 30px -8px hsl(var(--fiesta-orange) / 0.3);
   }
+
+  .shadow-fiesta-lg {
+    box-shadow: 0 20px 50px -12px hsl(var(--fiesta-pink) / 0.25), 0 8px 20px -8px hsl(var(--fiesta-orange) / 0.2);
+  }
+
+  .shadow-elevated {
+    box-shadow: 0 4px 6px -1px hsl(var(--foreground) / 0.05), 0 10px 30px -5px hsl(var(--foreground) / 0.08);
+  }
+
+  /* Papel picado decorative border */
+  .papel-picado {
+    position: relative;
+  }
+  .papel-picado::after {
+    content: '';
+    position: absolute;
+    bottom: -1px;
+    left: 0;
+    right: 0;
+    height: 20px;
+    background: linear-gradient(135deg, hsl(var(--fiesta-pink)) 25%, transparent 25%) -20px 0,
+                linear-gradient(225deg, hsl(var(--fiesta-orange)) 25%, transparent 25%) -20px 0,
+                linear-gradient(315deg, hsl(var(--fiesta-turquoise)) 25%, transparent 25%),
+                linear-gradient(45deg, hsl(var(--fiesta-yellow)) 25%, transparent 25%);
+    background-size: 40px 20px;
+    background-repeat: repeat-x;
+    mask-image: linear-gradient(to bottom, transparent 0%, black 100%);
+    -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 100%);
+    opacity: 0.4;
+  }
+
+  /* Glass card effect */
+  .glass-card {
+    background: hsl(var(--card) / 0.7);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid hsl(var(--border) / 0.5);
+  }
+
+  /* Scroll reveal animation */
+  .scroll-reveal {
+    opacity: 0;
+    transform: translateY(30px);
+    animation: fade-in 0.6s ease-out forwards;
+  }
+
+  .scroll-reveal-delay-1 { animation-delay: 0.1s; }
+  .scroll-reveal-delay-2 { animation-delay: 0.2s; }
+  .scroll-reveal-delay-3 { animation-delay: 0.3s; }
 }
