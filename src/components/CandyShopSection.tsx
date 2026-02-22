@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { MapPin, Camera } from 'lucide-react';
 import { candyItems } from '@/data/menu';
 
@@ -47,7 +48,13 @@ const storePhotos = [
   { src: store2, label: 'Store Overview' },
 ];
 
+const allTags = ['All', ...Array.from(new Set(candyItems.map((i) => i.tag)))];
+
 const CandyShopSection = () => {
+  const [activeTag, setActiveTag] = useState('All');
+
+  const filtered = activeTag === 'All' ? candyItems : candyItems.filter((i) => i.tag === activeTag);
+
   return (
     <section id="candy" className="py-20 bg-background">
       <div className="container mx-auto px-4">
@@ -60,8 +67,25 @@ const CandyShopSection = () => {
           </p>
         </div>
 
+        {/* Category Filter */}
+        <div className="flex justify-center gap-2 mb-10 flex-wrap">
+          {allTags.map((tag) => (
+            <button
+              key={tag}
+              onClick={() => setActiveTag(tag)}
+              className={`px-5 py-2.5 rounded-full font-bold transition-all text-sm ${
+                activeTag === tag
+                  ? 'bg-gradient-fiesta text-primary-foreground shadow-fiesta scale-105'
+                  : 'bg-card text-foreground border border-border hover:border-primary/40'
+              }`}
+            >
+              {tag}
+            </button>
+          ))}
+        </div>
+
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
-          {candyItems.map((item, i) => (
+          {filtered.map((item, i) => (
             <div
               key={item.id}
               className="group bg-card rounded-xl border border-border overflow-hidden hover:shadow-fiesta-orange hover:-translate-y-1 transition-all duration-300"
