@@ -47,7 +47,7 @@ const MenuPage = () => {
   };
 
   return (
-    <div className="min-h-screen pt-16">
+    <div className="min-h-screen">
       <Navbar cartCount={cartCount} onCartClick={() => setCartOpen(true)} />
       <RestaurantMenu onAddToCart={addToCart} />
       <Footer />

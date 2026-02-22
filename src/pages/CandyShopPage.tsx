@@ -4,7 +4,7 @@ import Footer from '@/components/Footer';
 
 const CandyShopPage = () => {
   return (
-    <div className="min-h-screen pt-16">
+    <div className="min-h-screen">
       <Navbar cartCount={0} onCartClick={() => {}} />
       <CandyShopSection />
       <Footer />
