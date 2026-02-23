@@ -30,7 +30,7 @@ const ContactSection = () => {
       content: (
         <>
           <a href="tel:+13145551234" className="text-muted-foreground hover:text-primary transition-colors block mb-3">(314) 555-1234</a>
-          <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 text-sm font-bold text-primary hover:opacity-80 transition-opacity">
+          <a href="https://www.facebook.com/dulceria.medina/" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 text-sm font-bold text-primary hover:opacity-80 transition-opacity">
             <Facebook size={16} /> {t('contact.followFacebook')}
           </a>
         </>
