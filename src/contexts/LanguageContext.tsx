@@ -118,6 +118,10 @@ const translations: Record<string, Record<Lang, string>> = {
   // Footer
   'footer.madeWith': { en: 'Made with ❤️ and lots of chamoy', es: 'Hecho con ❤️ y mucho chamoy' },
 
+  // Auth
+  'nav.signIn': { en: 'Sign In', es: 'Iniciar Sesión' },
+  'nav.signOut': { en: 'Sign Out', es: 'Cerrar Sesión' },
+
   // Store photo labels
   'store.juiceCounter': { en: 'Juice & Food Counter', es: 'Barra de Jugos y Comida' },
   'store.candyCounter': { en: 'Candy Counter', es: 'Mostrador de Dulces' },

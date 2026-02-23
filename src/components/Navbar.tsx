@@ -1,7 +1,8 @@
-import { ShoppingCart, Menu, X, Globe } from 'lucide-react';
+import { ShoppingCart, Menu, X, Globe, LogIn, LogOut, User } from 'lucide-react';
 import { useState, useEffect } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface NavbarProps {
@@ -13,7 +14,9 @@ const Navbar = ({ cartCount, onCartClick }: NavbarProps) => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
   const { lang, toggleLang, t } = useLanguage();
+  const { user, isAuthenticated, logout } = useAuth();
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 20);
@@ -73,6 +76,35 @@ const Navbar = ({ cartCount, onCartClick }: NavbarProps) => {
             <Globe size={15} />
             {lang === 'en' ? 'ES' : 'EN'}
           </motion.button>
+
+          {isAuthenticated ? (
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-bold text-foreground/70 flex items-center gap-1.5">
+                <User size={15} />
+                {user?.name?.split(' ')[0]}
+                <span className="text-xs px-1.5 py-0.5 rounded-full bg-primary/10 text-primary capitalize">{user?.role}</span>
+              </span>
+              <motion.button
+                onClick={logout}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-border text-sm font-bold text-foreground/70 hover:border-destructive/40 hover:text-destructive transition-all duration-200"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                <LogOut size={15} />
+                {t('nav.signOut')}
+              </motion.button>
+            </div>
+          ) : (
+            <motion.button
+              onClick={() => navigate('/login')}
+              className="flex items-center gap-1.5 px-4 py-2 rounded-full border-2 border-primary text-sm font-bold text-primary hover:bg-primary hover:text-primary-foreground transition-all duration-200"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              <LogIn size={15} />
+              {t('nav.signIn')}
+            </motion.button>
+          )}
 
           <motion.button
             onClick={onCartClick}
@@ -154,6 +186,29 @@ const Navbar = ({ cartCount, onCartClick }: NavbarProps) => {
                 </Link>
               </motion.div>
             ))}
+            {/* Mobile auth button */}
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: navLinks.length * 0.08 }}
+            >
+              {isAuthenticated ? (
+                <button
+                  onClick={() => { logout(); setMobileOpen(false); }}
+                  className="font-bold text-left py-3 px-4 rounded-xl transition-all block text-destructive hover:bg-destructive/5 w-full flex items-center gap-2"
+                >
+                  <LogOut size={16} /> {t('nav.signOut')} ({user?.role})
+                </button>
+              ) : (
+                <Link
+                  to="/login"
+                  onClick={() => setMobileOpen(false)}
+                  className="font-bold text-left py-3 px-4 rounded-xl transition-all block text-primary hover:bg-primary/5 flex items-center gap-2"
+                >
+                  <LogIn size={16} /> {t('nav.signIn')}
+                </Link>
+              )}
+            </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
