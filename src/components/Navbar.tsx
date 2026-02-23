@@ -78,28 +78,29 @@ const Navbar = ({ cartCount, onCartClick }: NavbarProps) => {
           </motion.button>
 
           {isAuthenticated ? (
-            <div className="flex items-center gap-2">
-              <span className="text-sm font-bold text-foreground/70 flex items-center gap-1.5">
-                <User size={15} />
-                {user?.name?.split(' ')[0]}
-                <span className="text-xs px-1.5 py-0.5 rounded-full bg-primary/10 text-primary capitalize">{user?.role}</span>
-              </span>
+            <motion.div className="flex items-center gap-3">
+              <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-muted/50">
+                <div className="w-7 h-7 rounded-full bg-gradient-fiesta flex items-center justify-center text-primary-foreground text-xs font-bold">
+                  {user?.name?.charAt(0)}
+                </div>
+                <span className="text-sm font-bold text-foreground/80">{user?.name?.split(' ')[0]}</span>
+                <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-primary/10 text-primary font-bold uppercase tracking-wide">{user?.role}</span>
+              </div>
               <motion.button
                 onClick={logout}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-border text-sm font-bold text-foreground/70 hover:border-destructive/40 hover:text-destructive transition-all duration-200"
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
+                className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-border text-sm font-bold text-foreground/60 hover:text-destructive hover:border-destructive/40 transition-all duration-200"
+                whileHover={{ scale: 1.03 }}
+                whileTap={{ scale: 0.97 }}
               >
-                <LogOut size={15} />
-                {t('nav.signOut')}
+                <LogOut size={14} />
               </motion.button>
-            </div>
+            </motion.div>
           ) : (
             <motion.button
               onClick={() => navigate('/login')}
-              className="flex items-center gap-1.5 px-4 py-2 rounded-full border-2 border-primary text-sm font-bold text-primary hover:bg-primary hover:text-primary-foreground transition-all duration-200"
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
+              className="flex items-center gap-2 px-4 py-2 rounded-lg border border-border text-sm font-bold text-foreground/70 hover:border-primary hover:text-primary transition-all duration-200"
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.97 }}
             >
               <LogIn size={15} />
               {t('nav.signIn')}
