@@ -1,5 +1,6 @@
 import { useLanguage } from '@/contexts/LanguageContext';
 import { motion } from 'framer-motion';
+import { Facebook } from 'lucide-react';
 
 const Footer = () => {
   const { t } = useLanguage();
@@ -15,6 +16,11 @@ const Footer = () => {
         transition={{ duration: 0.6 }}
       >
         <p className="font-fredoka text-2xl text-gradient-fiesta inline-block mb-3">🪅 Dulceria Medina</p>
+        <div className="flex justify-center mb-3">
+          <a href="https://www.facebook.com/dulceria.medina/" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 text-primary-foreground/50 hover:text-fiesta-pink transition-colors text-sm font-bold">
+            <Facebook size={18} /> Facebook
+          </a>
+        </div>
         <p className="text-sm text-primary-foreground/50 mb-3">© {new Date().getFullYear()} Dulceria Medina — St. Louis, MO</p>
         <p className="text-xs text-primary-foreground/30 inline-flex items-center gap-1">{t('footer.madeWith')}</p>
       </motion.div>
