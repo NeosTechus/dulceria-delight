@@ -1,4 +1,5 @@
 import { X, Plus, Minus, Trash2, MapPin, Store, Truck, AlertCircle } from 'lucide-react';
+import CartSuggestions from '@/components/CartSuggestions';
 import { type CartItem } from '@/data/menu';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useCart, MIN_DELIVERY_TOTAL, MAX_DELIVERY_MILES, haversineDistance, STORE_LAT, STORE_LNG } from '@/contexts/CartContext';
@@ -98,6 +99,9 @@ const CartDrawer = ({ open, onClose, items, onUpdateQty, onRemove, onCheckout }:
                     </div>
                   ))}
                 </div>
+
+                {/* Suggested items */}
+                <CartSuggestions cartItems={items} />
 
                 {/* Pickup / Delivery selector */}
                 <div className="border border-border rounded-xl p-4 mb-4">
