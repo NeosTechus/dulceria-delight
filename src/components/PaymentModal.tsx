@@ -1,12 +1,17 @@
 import { useState } from 'react';
-import { X, CreditCard, Check, AlertCircle } from 'lucide-react';
+import { X, CreditCard, Check, AlertCircle, CalendarIcon, Clock } from 'lucide-react';
 import { loadStripe } from '@stripe/stripe-js';
 import { Elements } from '@stripe/react-stripe-js';
+import { format } from 'date-fns';
 import { type CartItem } from '@/data/menu';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useCart } from '@/contexts/CartContext';
 import { STRIPE_PUBLISHABLE_KEY } from '@/config/api';
 import { ordersApi } from '@/services/api';
 import StripePaymentForm from '@/components/StripePaymentForm';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Calendar } from '@/components/ui/calendar';
+import { cn } from '@/lib/utils';
 
 const stripePromise = STRIPE_PUBLISHABLE_KEY
   ? loadStripe(STRIPE_PUBLISHABLE_KEY)
@@ -26,10 +31,22 @@ const PaymentModal = ({ open, onClose, items, onComplete }: PaymentModalProps) =
   const [loading, setLoading] = useState(false);
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
+  const [email, setEmail] = useState('');
+  const [pickupDate, setPickupDate] = useState<Date>();
+  const [pickupTime, setPickupTime] = useState('');
+  const { orderType } = useCart();
   const total = items.reduce((sum, i) => sum + i.price * i.quantity, 0);
   const tax = total * 0.09;
   const grandTotal = total + tax;
   const { t } = useLanguage();
+
+  const timeSlots = [
+    '10:00 AM', '10:30 AM', '11:00 AM', '11:30 AM',
+    '12:00 PM', '12:30 PM', '1:00 PM', '1:30 PM',
+    '2:00 PM', '2:30 PM', '3:00 PM', '3:30 PM',
+    '4:00 PM', '4:30 PM', '5:00 PM', '5:30 PM',
+    '6:00 PM', '6:30 PM', '7:00 PM', '7:30 PM',
+  ];
 
   const isStripeConfigured = !!STRIPE_PUBLISHABLE_KEY && !!stripePromise;
 
@@ -44,6 +61,9 @@ const PaymentModal = ({ open, onClose, items, onComplete }: PaymentModalProps) =
         setStep('info');
         setName('');
         setPhone('');
+        setEmail('');
+        setPickupDate(undefined);
+        setPickupTime('');
       }, 2500);
       return;
     }
@@ -160,28 +180,85 @@ const PaymentModal = ({ open, onClose, items, onComplete }: PaymentModalProps) =
                       className="w-full px-4 py-3 rounded-lg border border-input bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
                     />
                   </div>
-                  <div>
-                    <label className="block text-sm font-bold text-foreground mb-1">{t('pay.phone')}</label>
-                    <input
-                      required
-                      type="tel"
-                      value={phone}
-                      onChange={(e) => setPhone(e.target.value)}
-                      placeholder="(314) 555-1234"
-                      className="w-full px-4 py-3 rounded-lg border border-input bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
-                    />
-                  </div>
-                  <button
-                    type="submit"
-                    disabled={loading}
-                    className="w-full bg-gradient-fiesta text-primary-foreground font-bold py-4 rounded-xl text-lg shadow-fiesta hover:scale-[1.02] transition-transform mt-2 disabled:opacity-50"
-                  >
-                    {loading ? 'Creating order...' : isStripeConfigured ? 'Continue to Payment' : `Pay $${grandTotal.toFixed(2)}`}
-                  </button>
-                  {!isStripeConfigured && (
-                    <p className="text-xs text-muted-foreground text-center">{t('pay.demo')}</p>
-                  )}
-                </form>
+                   <div>
+                     <label className="block text-sm font-bold text-foreground mb-1">{t('pay.phone')}</label>
+                     <input
+                       required
+                       type="tel"
+                       value={phone}
+                       onChange={(e) => setPhone(e.target.value)}
+                       placeholder="(314) 555-1234"
+                       className="w-full px-4 py-3 rounded-lg border border-input bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                     />
+                   </div>
+                   <div>
+                     <label className="block text-sm font-bold text-foreground mb-1">Email</label>
+                     <input
+                       required
+                       type="email"
+                       value={email}
+                       onChange={(e) => setEmail(e.target.value)}
+                       placeholder="you@example.com"
+                       className="w-full px-4 py-3 rounded-lg border border-input bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                     />
+                   </div>
+
+                   {orderType === 'pickup' && (
+                     <div className="grid grid-cols-2 gap-3">
+                       <div>
+                         <label className="block text-sm font-bold text-foreground mb-1">📅 Pickup Date</label>
+                         <Popover>
+                           <PopoverTrigger asChild>
+                             <button
+                               type="button"
+                               className={cn(
+                                 "w-full px-4 py-3 rounded-lg border border-input bg-background text-left text-sm flex items-center gap-2 focus:outline-none focus:ring-2 focus:ring-ring",
+                                 !pickupDate && "text-muted-foreground"
+                               )}
+                             >
+                               <CalendarIcon size={16} />
+                               {pickupDate ? format(pickupDate, 'MMM d, yyyy') : 'Select date'}
+                             </button>
+                           </PopoverTrigger>
+                           <PopoverContent className="w-auto p-0 z-[70]" align="start">
+                             <Calendar
+                               mode="single"
+                               selected={pickupDate}
+                               onSelect={setPickupDate}
+                               disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
+                               className={cn("p-3 pointer-events-auto")}
+                             />
+                           </PopoverContent>
+                         </Popover>
+                       </div>
+                       <div>
+                         <label className="block text-sm font-bold text-foreground mb-1">🕐 Pickup Time</label>
+                         <select
+                           required
+                           value={pickupTime}
+                           onChange={(e) => setPickupTime(e.target.value)}
+                           className="w-full px-4 py-3 rounded-lg border border-input bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                         >
+                           <option value="">Select time</option>
+                           {timeSlots.map((slot) => (
+                             <option key={slot} value={slot}>{slot}</option>
+                           ))}
+                         </select>
+                       </div>
+                     </div>
+                   )}
+
+                   <button
+                     type="submit"
+                     disabled={loading || (orderType === 'pickup' && (!pickupDate || !pickupTime))}
+                     className="w-full bg-gradient-fiesta text-primary-foreground font-bold py-4 rounded-xl text-lg shadow-fiesta hover:scale-[1.02] transition-transform mt-2 disabled:opacity-50"
+                   >
+                     {loading ? 'Creating order...' : isStripeConfigured ? 'Continue to Payment' : `Pay $${grandTotal.toFixed(2)}`}
+                   </button>
+                   {!isStripeConfigured && (
+                     <p className="text-xs text-muted-foreground text-center">{t('pay.demo')}</p>
+                   )}
+                 </form>
               )}
 
               {step === 'stripe' && stripePromise && clientSecret && (
