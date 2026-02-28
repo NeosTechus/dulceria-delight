@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { X, CreditCard, Check, AlertCircle, CalendarIcon, Clock } from 'lucide-react';
+import { X, CreditCard, Check, AlertCircle, CalendarIcon, Clock, MapPin, Truck } from 'lucide-react';
 import { loadStripe } from '@stripe/stripe-js';
 import { Elements } from '@stripe/react-stripe-js';
 import { format } from 'date-fns';
@@ -35,6 +35,8 @@ const PaymentModal = ({ open, onClose, items, onComplete }: PaymentModalProps) =
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
+  const [deliveryAddress, setDeliveryAddress] = useState('');
+  const [addressError, setAddressError] = useState('');
   const [pickupDate, setPickupDate] = useState<Date>();
   const [pickupTime, setPickupTime] = useState('');
   const { orderType } = useCart();
@@ -51,6 +53,19 @@ const PaymentModal = ({ open, onClose, items, onComplete }: PaymentModalProps) =
     return total + (perItem[item.category] || 5) * item.quantity;
   }, 0);
   const prepTime = Math.max(15, Math.min(prepMinutes, 90)); // clamp 15–90 min
+
+  // Delivery zones near 3515 Cherokee St, St. Louis
+  const deliveryZones = [
+    'Cherokee Street', 'Benton Park', 'Gravois Park', 'Dutchtown',
+    'Tower Grove South', 'Tower Grove East', 'Marine Villa', 'South Grand',
+    'Fox Park', 'Soulard', 'Carondelet', 'Holly Hills',
+  ];
+
+  const validateAddress = (addr: string) => {
+    if (!addr.trim()) return 'Please enter a delivery address';
+    if (addr.trim().length < 10) return 'Please enter a full street address';
+    return '';
+  };
 
   // Generate pickup slots starting from now + prep time, in 15-min increments
   const generateTimeSlots = () => {
@@ -84,6 +99,11 @@ const PaymentModal = ({ open, onClose, items, onComplete }: PaymentModalProps) =
   const handleInfoSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    if (orderType === 'delivery') {
+      const err = validateAddress(deliveryAddress);
+      if (err) { setAddressError(err); return; }
+    }
+
     if (!isStripeConfigured) {
       // Demo mode — place order into context for chef dashboard
       const id = placeOrder({
@@ -92,6 +112,7 @@ const PaymentModal = ({ open, onClose, items, onComplete }: PaymentModalProps) =
         customerPhone: phone,
         customerEmail: email,
         orderType,
+        deliveryAddress: orderType === 'delivery' ? deliveryAddress : undefined,
         pickupDate: pickupDate ? format(pickupDate, 'MMM d, yyyy') : undefined,
         pickupTime: pickupTime || undefined,
         total: grandTotal,
@@ -106,6 +127,8 @@ const PaymentModal = ({ open, onClose, items, onComplete }: PaymentModalProps) =
         setName('');
         setPhone('');
         setEmail('');
+        setDeliveryAddress('');
+        setAddressError('');
         setPickupDate(undefined);
         setPickupTime('');
         setOrderId('');
@@ -256,6 +279,50 @@ const PaymentModal = ({ open, onClose, items, onComplete }: PaymentModalProps) =
                      />
                    </div>
 
+                   {orderType === 'delivery' && (
+                     <div className="space-y-3">
+                       <div className="flex items-center gap-2 p-3 rounded-lg bg-primary/10 text-sm">
+                         <Truck size={16} className="text-primary shrink-0" />
+                         <span className="text-foreground">
+                           Delivery within <strong>~5 miles</strong> of Cherokee St, St. Louis
+                         </span>
+                       </div>
+                       <div>
+                         <label className="block text-sm font-bold text-foreground mb-1">
+                           <MapPin size={14} className="inline mr-1" />Delivery Address
+                         </label>
+                         <input
+                           type="text"
+                           value={deliveryAddress}
+                           onChange={(e) => { setDeliveryAddress(e.target.value); setAddressError(''); }}
+                           placeholder="123 Main St, St. Louis, MO 63118"
+                           className={cn(
+                             "w-full px-4 py-3 rounded-lg border bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring",
+                             addressError ? 'border-destructive' : 'border-input'
+                           )}
+                         />
+                         {addressError && (
+                           <p className="text-xs text-destructive mt-1">{addressError}</p>
+                         )}
+                       </div>
+                       <div>
+                         <p className="text-xs font-bold text-muted-foreground mb-2">📍 Suggested areas we deliver to:</p>
+                         <div className="flex flex-wrap gap-1.5">
+                           {deliveryZones.map((zone) => (
+                             <button
+                               key={zone}
+                               type="button"
+                               onClick={() => { setDeliveryAddress((prev) => prev ? prev : zone + ', St. Louis, MO'); setAddressError(''); }}
+                               className="text-xs px-2.5 py-1 rounded-full border border-border bg-muted/50 text-foreground hover:bg-primary/10 hover:border-primary/40 transition-colors"
+                             >
+                               {zone}
+                             </button>
+                           ))}
+                         </div>
+                       </div>
+                     </div>
+                   )}
+
                    {orderType === 'pickup' && (
                      <>
                        <div className="flex items-center gap-2 p-3 rounded-lg bg-primary/10 text-sm">
@@ -311,7 +378,7 @@ const PaymentModal = ({ open, onClose, items, onComplete }: PaymentModalProps) =
 
                    <button
                      type="submit"
-                     disabled={loading || (orderType === 'pickup' && (!pickupDate || !pickupTime))}
+                     disabled={loading || (orderType === 'pickup' && (!pickupDate || !pickupTime)) || (orderType === 'delivery' && !deliveryAddress.trim())}
                      className="w-full bg-gradient-fiesta text-primary-foreground font-bold py-4 rounded-xl text-lg shadow-fiesta hover:scale-[1.02] transition-transform mt-2 disabled:opacity-50"
                    >
                      {loading ? 'Creating order...' : isStripeConfigured ? 'Continue to Payment' : `Pay $${grandTotal.toFixed(2)}`}

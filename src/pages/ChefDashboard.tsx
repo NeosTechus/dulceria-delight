@@ -253,6 +253,12 @@ const ChefDashboard = () => {
                               <p className="text-muted-foreground">✉️ Email</p>
                               <p className="font-bold text-foreground">{order.customerEmail}</p>
                             </div>
+                            {order.deliveryAddress && (
+                              <div className="col-span-2">
+                                <p className="text-muted-foreground">📍 Delivery Address</p>
+                                <p className="font-bold text-foreground">{order.deliveryAddress}</p>
+                              </div>
+                            )}
                             {order.pickupDate && (
                               <div>
                                 <p className="text-muted-foreground">📅 Pickup Date</p>
