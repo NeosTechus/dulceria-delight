@@ -21,7 +21,7 @@ const HeroSection = () => {
   };
 
   return (
-    <section id="hero" className="relative min-h-screen flex items-center justify-center overflow-hidden">
+    <section id="hero" className="relative min-h-screen flex items-center justify-center overflow-hidden pt-[120px]">
       <motion.div
         className="absolute inset-0 bg-cover bg-center scale-110"
         style={{ backgroundImage: `url(${heroBg})` }}
