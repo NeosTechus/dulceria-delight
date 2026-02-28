@@ -38,7 +38,7 @@ const Navbar = ({ cartCount, onCartClick }: NavbarProps) => {
       transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
     >
       {/* Top Info Bar */}
-      <div className="bg-primary text-primary-foreground text-sm">
+      <div className="bg-fiesta-orange text-white text-sm">
         <div className="container mx-auto flex items-center justify-between px-4 py-2">
           <div className="flex items-center gap-4 flex-wrap">
             <a href="https://maps.google.com/?q=2753+Cherokee+St,+St.+Louis,+MO+63118" target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 hover:opacity-80 transition-opacity">
