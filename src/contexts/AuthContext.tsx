@@ -13,6 +13,7 @@ interface User {
 interface AuthContextType {
   user: User | null;
   login: (email: string, password: string) => Promise<void>;
+  register: (name: string, email: string, password: string) => Promise<void>;
   staffLogin: (email: string, password: string, role: 'admin' | 'chef') => boolean;
   googleLogin: (idToken: string) => Promise<void>;
   demoLogin: (role: UserRole) => void;
@@ -69,6 +70,20 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  const register = async (name: string, email: string, password: string) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const { user: authUser } = await authApi.register(name, email, password, 'customer');
+      setUser(authUser);
+    } catch (err: any) {
+      setError(err.message || 'Registration failed');
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const staffLogin = (email: string, password: string, role: 'admin' | 'chef'): boolean => {
     const creds = staffCredentials[role];
     if (email === creds.email && password === creds.password) {
@@ -111,7 +126,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, staffLogin, googleLogin, demoLogin, logout, isAuthenticated: !!user, loading, error }}>
+    <AuthContext.Provider value={{ user, login, register, staffLogin, googleLogin, demoLogin, logout, isAuthenticated: !!user, loading, error }}>
       {children}
     </AuthContext.Provider>
   );
