@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { X, CreditCard, Check, AlertCircle, CalendarIcon, Clock } from 'lucide-react';
 import { loadStripe } from '@stripe/stripe-js';
 import { Elements } from '@stripe/react-stripe-js';
@@ -26,6 +27,7 @@ interface PaymentModalProps {
 }
 
 const PaymentModal = ({ open, onClose, items, onComplete }: PaymentModalProps) => {
+  const navigate = useNavigate();
   const [step, setStep] = useState<'info' | 'stripe' | 'success' | 'error'>('info');
   const [clientSecret, setClientSecret] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
@@ -99,6 +101,7 @@ const PaymentModal = ({ open, onClose, items, onComplete }: PaymentModalProps) =
       setStep('success');
       setTimeout(() => {
         onComplete();
+        onClose();
         setStep('info');
         setName('');
         setPhone('');
@@ -106,7 +109,8 @@ const PaymentModal = ({ open, onClose, items, onComplete }: PaymentModalProps) =
         setPickupDate(undefined);
         setPickupTime('');
         setOrderId('');
-      }, 3000);
+        navigate('/orders');
+      }, 2500);
       return;
     }
 

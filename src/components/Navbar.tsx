@@ -1,4 +1,4 @@
-import { ShoppingCart, Menu, X, Globe, LogIn, LogOut, User, MapPin, Phone, Clock } from 'lucide-react';
+import { ShoppingCart, Menu, X, Globe, LogIn, LogOut, User, MapPin, Phone, Clock, Package } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -99,6 +99,23 @@ const Navbar = ({ cartCount, onCartClick }: NavbarProps) => {
               )}
             </Link>
           ))}
+
+          <Link
+            to="/orders"
+            className={`font-nunito font-bold transition-all duration-200 relative py-1 flex items-center gap-1.5 ${
+              location.pathname === '/orders' ? 'text-primary' : 'text-foreground/70 hover:text-primary'
+            }`}
+          >
+            <Package size={16} />
+            Orders
+            {location.pathname === '/orders' && (
+              <motion.span
+                className="absolute -bottom-1 left-0 right-0 h-0.5 bg-gradient-fiesta rounded-full"
+                layoutId="nav-underline"
+                transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+              />
+            )}
+          </Link>
 
 
           {isAuthenticated ? (
@@ -204,6 +221,21 @@ const Navbar = ({ cartCount, onCartClick }: NavbarProps) => {
                 </Link>
               </motion.div>
             ))}
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: navLinks.length * 0.08 }}
+            >
+              <Link
+                to="/orders"
+                onClick={() => setMobileOpen(false)}
+                className={`font-bold text-left py-3 px-4 rounded-xl transition-all flex items-center gap-2 ${
+                  location.pathname === '/orders' ? 'text-primary bg-primary/5' : 'text-foreground/70 hover:bg-muted'
+                }`}
+              >
+                <Package size={16} /> Orders
+              </Link>
+            </motion.div>
             {/* Mobile auth button */}
             <motion.div
               initial={{ opacity: 0, x: -20 }}
