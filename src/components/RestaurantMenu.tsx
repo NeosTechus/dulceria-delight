@@ -5,6 +5,30 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import store11 from '@/assets/store/store-11.jpg';
 
+// Menu item images
+import jugoNaranja from '@/assets/menu/jugo-naranja.jpg';
+import jugoVerde from '@/assets/menu/jugo-verde.jpg';
+import horchata from '@/assets/menu/horchata.jpg';
+import licuadoFresa from '@/assets/menu/licuado-fresa.jpg';
+import jamaica from '@/assets/menu/jamaica.jpg';
+import mangoChile from '@/assets/menu/mango-chile.jpg';
+import tortaJamon from '@/assets/menu/torta-jamon.jpg';
+import tortaMilanesa from '@/assets/menu/torta-milanesa.jpg';
+import tortaCubana from '@/assets/menu/torta-cubana.jpg';
+import tortaCarnitas from '@/assets/menu/torta-carnitas.jpg';
+import tortaPollo from '@/assets/menu/torta-pollo.jpg';
+import elote from '@/assets/menu/elote.jpg';
+import tostilocos from '@/assets/menu/tostilocos.jpg';
+import frutaChile from '@/assets/menu/fruta-chile.jpg';
+import nachos from '@/assets/menu/nachos.jpg';
+import churros from '@/assets/menu/churros.jpg';
+
+const menuImages: Record<string, string> = {
+  j1: jugoNaranja, j2: jugoVerde, j3: horchata, j4: licuadoFresa, j5: jamaica, j6: mangoChile,
+  t1: tortaJamon, t2: tortaMilanesa, t3: tortaCubana, t4: tortaCarnitas, t5: tortaPollo,
+  s1: elote, s2: tostilocos, s3: frutaChile, s4: nachos, s5: churros,
+};
+
 interface RestaurantMenuProps {
   onAddToCart: (item: MenuItem) => void;
 }
@@ -96,27 +120,41 @@ const RestaurantMenu = ({ onAddToCart }: RestaurantMenuProps) => {
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, scale: 0.9 }}
                   transition={{ duration: 0.4, delay: i * 0.06, ease: [0.16, 1, 0.3, 1] }}
-                  className="group bg-card rounded-2xl border border-border/50 p-6 flex flex-col hover:shadow-fiesta-lg hover:-translate-y-2 transition-all duration-500"
+                  className="group bg-card rounded-2xl border border-border/50 overflow-hidden flex flex-col hover:shadow-fiesta-lg hover:-translate-y-2 transition-all duration-500"
                 >
-                  <div className="flex items-start justify-between mb-3">
-                    <motion.span
-                      className="text-4xl"
-                      whileHover={{ rotate: [0, -10, 10, -10, 0], transition: { duration: 0.5 } }}
+                  {/* Image */}
+                  {menuImages[item.id] && (
+                    <div className="aspect-[4/3] overflow-hidden bg-muted">
+                      <img
+                        src={menuImages[item.id]}
+                        alt={item.name}
+                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                        loading="lazy"
+                      />
+                    </div>
+                  )}
+
+                  <div className="p-6 flex flex-col flex-1">
+                    <div className="flex items-start justify-between mb-3">
+                      <motion.span
+                        className="text-3xl"
+                        whileHover={{ rotate: [0, -10, 10, -10, 0], transition: { duration: 0.5 } }}
+                      >
+                        {item.emoji}
+                      </motion.span>
+                      <span className="font-fredoka text-2xl text-secondary">${item.price.toFixed(2)}</span>
+                    </div>
+                    <h3 className="font-fredoka text-xl text-foreground mb-2">{item.name}</h3>
+                    <p className="text-muted-foreground mb-5 flex-1 leading-relaxed">{item.description}</p>
+                    <motion.button
+                      onClick={() => onAddToCart(item)}
+                      className="w-full bg-gradient-fiesta-alt text-accent-foreground font-bold py-3 rounded-xl flex items-center justify-center gap-2 hover:shadow-lg transition-shadow duration-300"
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.97 }}
                     >
-                      {item.emoji}
-                    </motion.span>
-                    <span className="font-fredoka text-2xl text-secondary">${item.price.toFixed(2)}</span>
+                      <Plus size={18} /> {t('menu.addToOrder')}
+                    </motion.button>
                   </div>
-                  <h3 className="font-fredoka text-xl text-foreground mb-2">{item.name}</h3>
-                  <p className="text-muted-foreground mb-5 flex-1 leading-relaxed">{item.description}</p>
-                  <motion.button
-                    onClick={() => onAddToCart(item)}
-                    className="w-full bg-gradient-fiesta-alt text-accent-foreground font-bold py-3 rounded-xl flex items-center justify-center gap-2 hover:shadow-lg transition-shadow duration-300"
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.97 }}
-                  >
-                    <Plus size={18} /> {t('menu.addToOrder')}
-                  </motion.button>
                 </motion.div>
               ))}
             </AnimatePresence>
