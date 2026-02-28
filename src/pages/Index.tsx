@@ -3,11 +3,13 @@ import HeroSection from '@/components/HeroSection';
 import LandingHighlights from '@/components/LandingHighlights';
 import ContactSection from '@/components/ContactSection';
 import Footer from '@/components/Footer';
+import { useCart } from '@/contexts/CartContext';
 
 const Index = () => {
+  const { cartCount, setCartOpen } = useCart();
   return (
     <div className="min-h-screen">
-      <Navbar cartCount={0} onCartClick={() => {}} />
+      <Navbar cartCount={cartCount} onCartClick={() => setCartOpen(true)} />
       <HeroSection />
       <LandingHighlights />
       <ContactSection />

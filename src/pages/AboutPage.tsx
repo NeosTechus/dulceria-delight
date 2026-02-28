@@ -1,3 +1,4 @@
+import { useCart } from '@/contexts/CartContext';
 import Navbar from '@/components/Navbar';
 import ContactSection from '@/components/ContactSection';
 import Footer from '@/components/Footer';
@@ -31,9 +32,11 @@ const AboutPage = () => {
     { icon: Users, emoji: '🏘️', title: t('about.community'), desc: t('about.communityDesc'), gradient: 'from-fiesta-turquoise/15 to-transparent', iconColor: 'text-fiesta-turquoise bg-fiesta-turquoise/15' },
   ];
 
+  const { cartCount, setCartOpen } = useCart();
+
   return (
     <div className="min-h-screen">
-      <Navbar cartCount={0} onCartClick={() => {}} />
+      <Navbar cartCount={cartCount} onCartClick={() => setCartOpen(true)} />
 
       {/* Hero */}
       <section className="relative h-[55vh] min-h-[400px] flex items-center justify-center overflow-hidden">

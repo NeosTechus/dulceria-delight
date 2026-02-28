@@ -3,7 +3,8 @@ export interface CartItem {
   name: string;
   price: number;
   quantity: number;
-  category: 'jugos' | 'tortas' | 'snacks';
+  category: 'jugos' | 'tortas' | 'snacks' | 'candy';
+  emoji?: string;
 }
 
 export interface MenuItem {
@@ -43,18 +44,19 @@ export interface CandyItem {
   id: string;
   name: string;
   description: string;
+  price: number;
   emoji: string;
   tag: string;
   image?: string;
 }
 
 export const candyItems: CandyItem[] = [
-  { id: 'c1', name: 'Mazapán', description: 'Classic peanut candy that crumbles perfectly', emoji: '🥜', tag: 'Best Seller' },
-  { id: 'c2', name: 'Pulparindo', description: 'Tamarind candy with chili — sweet & spicy!', emoji: '🌶️', tag: 'Spicy' },
-  { id: 'c3', name: 'Lucas Muecas', description: 'Lollipop with chili powder dip', emoji: '🍭', tag: 'Fun' },
-  { id: 'c4', name: 'Obleas', description: 'Wafer sandwich with cajeta filling', emoji: '🧇', tag: 'Sweet' },
-  { id: 'c5', name: 'Pelon Pelo Rico', description: 'Tamarind push-up candy with chili', emoji: '🍬', tag: 'Classic' },
-  { id: 'c6', name: 'Duvalin', description: 'Creamy hazelnut and vanilla treat', emoji: '🍫', tag: 'Creamy' },
-  { id: 'c7', name: 'Piñatas', description: 'Handmade piñatas for every occasion', emoji: '🪅', tag: 'Party' },
-  { id: 'c8', name: 'Vero Mango', description: 'Mango-flavored lollipop with chili', emoji: '🥭', tag: 'Tangy' },
+  { id: 'c1', name: 'Mazapán', description: 'Classic peanut candy that crumbles perfectly', price: 2.49, emoji: '🥜', tag: 'Best Seller' },
+  { id: 'c2', name: 'Pulparindo', description: 'Tamarind candy with chili — sweet & spicy!', price: 1.99, emoji: '🌶️', tag: 'Spicy' },
+  { id: 'c3', name: 'Lucas Muecas', description: 'Lollipop with chili powder dip', price: 2.29, emoji: '🍭', tag: 'Fun' },
+  { id: 'c4', name: 'Obleas', description: 'Wafer sandwich with cajeta filling', price: 3.49, emoji: '🧇', tag: 'Sweet' },
+  { id: 'c5', name: 'Pelon Pelo Rico', description: 'Tamarind push-up candy with chili', price: 2.49, emoji: '🍬', tag: 'Classic' },
+  { id: 'c6', name: 'Duvalin', description: 'Creamy hazelnut and vanilla treat', price: 1.79, emoji: '🍫', tag: 'Creamy' },
+  { id: 'c7', name: 'Piñatas', description: 'Handmade piñatas for every occasion', price: 24.99, emoji: '🪅', tag: 'Party' },
+  { id: 'c8', name: 'Vero Mango', description: 'Mango-flavored lollipop with chili', price: 1.99, emoji: '🥭', tag: 'Tangy' },
 ];
