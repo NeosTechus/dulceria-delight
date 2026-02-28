@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { LogIn, Search, Package, ArrowRight, Clock, CheckCircle, Flame, ShoppingBag, Truck } from 'lucide-react';
+import { LogIn, Search, Package, ArrowRight, Clock, CheckCircle, Flame, ShoppingBag, Truck, Timer } from 'lucide-react';
 import { useOrders, type OrderStatus } from '@/contexts/OrderContext';
 import { useAuth } from '@/contexts/AuthContext';
 import Navbar from '@/components/Navbar';
@@ -57,7 +57,17 @@ const OrdersPage = () => {
     const mins = Math.floor((Date.now() - date.getTime()) / 60000);
     if (mins < 1) return 'Just now';
     if (mins < 60) return `${mins}m ago`;
-    return `${Math.floor(mins / 60)}h ago`;
+    return `${Math.floor(mins / 60)}h ${mins % 60}m ago`;
+  };
+
+  const formatTime = (date: Date) =>
+    date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+  const getEstimatedReady = (order: typeof activeOrders[0]) => {
+    const acceptedEntry = order.statusHistory.find((h) => h.status === 'accepted');
+    if (!acceptedEntry) return null;
+    const ready = new Date(acceptedEntry.at.getTime() + order.prepMinutes * 60000);
+    return ready;
   };
 
   return (
@@ -195,11 +205,55 @@ const OrdersPage = () => {
                         ))}
                       </div>
 
-                      {order.pickupDate && (
-                        <p className="text-xs text-muted-foreground mt-3">
-                          📅 {order.pickupDate} {order.pickupTime && `at ${order.pickupTime}`}
-                        </p>
-                      )}
+                      {/* Timing & Status History */}
+                      <div className="mt-4 pt-3 border-t border-border/50 space-y-3">
+                        {/* Estimated ready / pickup info */}
+                        <div className="flex flex-wrap gap-4 text-sm">
+                          {(() => {
+                            const est = getEstimatedReady(order);
+                            if (est && order.status !== 'ready') {
+                              const minsLeft = Math.max(0, Math.ceil((est.getTime() - Date.now()) / 60000));
+                              return (
+                                <div className="flex items-center gap-1.5 text-primary font-bold">
+                                  <Timer size={14} />
+                                  {minsLeft > 0
+                                    ? `Ready in ~${minsLeft} min (${formatTime(est)})`
+                                    : `Should be ready now!`}
+                                </div>
+                              );
+                            }
+                            if (order.status === 'ready') {
+                              return (
+                                <div className="flex items-center gap-1.5 text-green-600 font-bold">
+                                  <CheckCircle size={14} />
+                                  Ready for {order.orderType}!
+                                </div>
+                              );
+                            }
+                            return (
+                              <div className="flex items-center gap-1.5 text-muted-foreground">
+                                <Clock size={14} />
+                                Est. {order.prepMinutes} min prep time
+                              </div>
+                            );
+                          })()}
+                          {order.pickupDate && (
+                            <div className="flex items-center gap-1.5 text-muted-foreground">
+                              📅 {order.pickupDate} {order.pickupTime && `at ${order.pickupTime}`}
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Status change timeline */}
+                        <div className="flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-muted-foreground">
+                          {order.statusHistory.map((h, i) => (
+                            <span key={i} className="flex items-center gap-1">
+                              <span className={`w-1.5 h-1.5 rounded-full ${statusColors[h.status]}`} />
+                              {statusSteps[statusIndex(h.status)]?.label} — {formatTime(h.at)}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
                     </div>
                   );
                 })}

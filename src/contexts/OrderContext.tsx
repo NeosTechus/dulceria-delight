@@ -3,6 +3,11 @@ import { type CartItem } from '@/data/menu';
 
 export type OrderStatus = 'pending' | 'accepted' | 'preparing' | 'ready' | 'delivered';
 
+export interface StatusChange {
+  status: OrderStatus;
+  at: Date;
+}
+
 export interface PlacedOrder {
   id: string;
   items: { name: string; qty: number; category: string; emoji?: string }[];
@@ -13,6 +18,7 @@ export interface PlacedOrder {
   pickupDate?: string;
   pickupTime?: string;
   status: OrderStatus;
+  statusHistory: StatusChange[];
   total: number;
   createdAt: Date;
   prepMinutes: number;
@@ -20,7 +26,7 @@ export interface PlacedOrder {
 
 interface OrderContextType {
   orders: PlacedOrder[];
-  placeOrder: (order: Omit<PlacedOrder, 'id' | 'status' | 'createdAt'>) => string;
+  placeOrder: (order: Omit<PlacedOrder, 'id' | 'status' | 'createdAt' | 'statusHistory'>) => string;
   updateOrderStatus: (id: string, status: OrderStatus) => void;
   getOrdersByStatus: (status: OrderStatus) => PlacedOrder[];
 }
@@ -34,11 +40,13 @@ export const OrderProvider = ({ children }: { children: ReactNode }) => {
 
   const placeOrder = useCallback((order: Omit<PlacedOrder, 'id' | 'status' | 'createdAt'>) => {
     const id = `ORD-${String(orderCounter++).padStart(3, '0')}`;
+    const now = new Date();
     const newOrder: PlacedOrder = {
       ...order,
       id,
       status: 'pending',
-      createdAt: new Date(),
+      statusHistory: [{ status: 'pending', at: now }],
+      createdAt: now,
     };
     setOrders((prev) => [newOrder, ...prev]);
     return id;
@@ -46,7 +54,11 @@ export const OrderProvider = ({ children }: { children: ReactNode }) => {
 
   const updateOrderStatus = useCallback((id: string, status: OrderStatus) => {
     setOrders((prev) =>
-      prev.map((o) => (o.id === id ? { ...o, status } : o))
+      prev.map((o) =>
+        o.id === id
+          ? { ...o, status, statusHistory: [...o.statusHistory, { status, at: new Date() }] }
+          : o
+      )
     );
   }, []);
 
