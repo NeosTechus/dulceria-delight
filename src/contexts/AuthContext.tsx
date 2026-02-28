@@ -1,6 +1,5 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { authApi } from '@/services/auth';
-import { API_BASE_URL } from '@/config/api';
 
 export type UserRole = 'customer' | 'admin' | 'chef';
 
@@ -14,6 +13,7 @@ interface User {
 interface AuthContextType {
   user: User | null;
   login: (email: string, password: string) => Promise<void>;
+  googleLogin: (idToken: string) => Promise<void>;
   demoLogin: (role: UserRole) => void;
   logout: () => void;
   isAuthenticated: boolean;
@@ -22,8 +22,6 @@ interface AuthContextType {
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
-
-
 
 const defaultUsers: Record<UserRole, User> = {
   customer: { name: 'Maria Garcia', email: 'maria@example.com', role: 'customer' },
@@ -36,7 +34,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Restore session from localStorage
   useEffect(() => {
     const saved = authApi.getSavedUser();
     if (saved) setUser(saved);
@@ -56,6 +53,20 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  const googleLogin = async (idToken: string) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const { user: authUser } = await authApi.googleLogin(idToken);
+      setUser(authUser);
+    } catch (err: any) {
+      setError(err.message || 'Google login failed');
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const demoLogin = (role: UserRole) => {
     setUser(defaultUsers[role]);
     setError(null);
@@ -68,7 +79,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, demoLogin, logout, isAuthenticated: !!user, loading, error }}>
+    <AuthContext.Provider value={{ user, login, googleLogin, demoLogin, logout, isAuthenticated: !!user, loading, error }}>
       {children}
     </AuthContext.Provider>
   );

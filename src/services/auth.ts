@@ -15,6 +15,11 @@ export interface AuthResponse {
 const AUTH_TOKEN_KEY = 'auth_token';
 const AUTH_USER_KEY = 'auth_user';
 
+function saveSession(data: AuthResponse) {
+  localStorage.setItem(AUTH_TOKEN_KEY, data.token);
+  localStorage.setItem(AUTH_USER_KEY, JSON.stringify(data.user));
+}
+
 export const authApi = {
   /** POST /api/auth/login */
   login: async (email: string, password: string): Promise<AuthResponse> => {
@@ -28,8 +33,23 @@ export const authApi = {
       throw new Error(err.message || 'Invalid credentials');
     }
     const data: AuthResponse = await res.json();
-    localStorage.setItem(AUTH_TOKEN_KEY, data.token);
-    localStorage.setItem(AUTH_USER_KEY, JSON.stringify(data.user));
+    saveSession(data);
+    return data;
+  },
+
+  /** POST /api/auth/google — exchange Google ID token for app JWT */
+  googleLogin: async (idToken: string): Promise<AuthResponse> => {
+    const res = await fetch(`${API_BASE_URL}/auth/google`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ idToken }),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ message: 'Google login failed' }));
+      throw new Error(err.message || 'Google login failed');
+    }
+    const data: AuthResponse = await res.json();
+    saveSession(data);
     return data;
   },
 
@@ -45,12 +65,11 @@ export const authApi = {
       throw new Error(err.message || 'Registration failed');
     }
     const data: AuthResponse = await res.json();
-    localStorage.setItem(AUTH_TOKEN_KEY, data.token);
-    localStorage.setItem(AUTH_USER_KEY, JSON.stringify(data.user));
+    saveSession(data);
     return data;
   },
 
-  /** GET /api/auth/me — verify token & get current user */
+  /** GET /api/auth/me */
   me: async (): Promise<AuthResponse['user'] | null> => {
     const token = localStorage.getItem(AUTH_TOKEN_KEY);
     if (!token) return null;
