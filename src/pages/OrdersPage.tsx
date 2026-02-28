@@ -245,6 +245,11 @@ const OrdersPage = () => {
                               </div>
                             );
                           })()}
+                          {order.deliveryAddress && (
+                            <div className="flex items-center gap-1.5 text-muted-foreground">
+                              📍 {order.deliveryAddress}
+                            </div>
+                          )}
                           {order.pickupDate && (
                             <div className="flex items-center gap-1.5 text-muted-foreground">
                               📅 {order.pickupDate} {order.pickupTime && `at ${order.pickupTime}`}

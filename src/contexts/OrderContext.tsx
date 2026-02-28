@@ -15,6 +15,7 @@ export interface PlacedOrder {
   customerPhone: string;
   customerEmail: string;
   orderType: 'pickup' | 'delivery';
+  deliveryAddress?: string;
   pickupDate?: string;
   pickupTime?: string;
   status: OrderStatus;
