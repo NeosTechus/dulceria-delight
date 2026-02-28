@@ -100,7 +100,7 @@ const LoginPage = () => {
   return (
     <div className="min-h-screen bg-background">
       <Navbar cartCount={0} onCartClick={() => {}} />
-      <div className="pt-24 pb-20 px-4 flex justify-center items-start min-h-[80vh]">
+      <div className="pt-[140px] pb-20 px-4 flex justify-center items-start min-h-[80vh]">
         <motion.div
           className="w-full max-w-sm"
           initial={{ opacity: 0, y: 20 }}
