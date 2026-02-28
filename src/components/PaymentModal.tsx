@@ -6,6 +6,7 @@ import { format } from 'date-fns';
 import { type CartItem } from '@/data/menu';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useCart } from '@/contexts/CartContext';
+import { useOrders } from '@/contexts/OrderContext';
 import { STRIPE_PUBLISHABLE_KEY } from '@/config/api';
 import { ordersApi } from '@/services/api';
 import StripePaymentForm from '@/components/StripePaymentForm';
@@ -35,6 +36,8 @@ const PaymentModal = ({ open, onClose, items, onComplete }: PaymentModalProps) =
   const [pickupDate, setPickupDate] = useState<Date>();
   const [pickupTime, setPickupTime] = useState('');
   const { orderType } = useCart();
+  const { placeOrder } = useOrders();
+  const [orderId, setOrderId] = useState('');
   const total = items.reduce((sum, i) => sum + i.price * i.quantity, 0);
   const tax = total * 0.09;
   const grandTotal = total + tax;
@@ -80,7 +83,19 @@ const PaymentModal = ({ open, onClose, items, onComplete }: PaymentModalProps) =
     e.preventDefault();
 
     if (!isStripeConfigured) {
-      // Demo mode fallback when Stripe isn't configured
+      // Demo mode — place order into context for chef dashboard
+      const id = placeOrder({
+        items: items.map((i) => ({ name: i.name, qty: i.quantity, category: i.category, emoji: i.emoji })),
+        customerName: name,
+        customerPhone: phone,
+        customerEmail: email,
+        orderType,
+        pickupDate: pickupDate ? format(pickupDate, 'MMM d, yyyy') : undefined,
+        pickupTime: pickupTime || undefined,
+        total: grandTotal,
+        prepMinutes: prepTime,
+      });
+      setOrderId(id);
       setStep('success');
       setTimeout(() => {
         onComplete();
@@ -90,7 +105,8 @@ const PaymentModal = ({ open, onClose, items, onComplete }: PaymentModalProps) =
         setEmail('');
         setPickupDate(undefined);
         setPickupTime('');
-      }, 2500);
+        setOrderId('');
+      }, 3000);
       return;
     }
 
@@ -140,6 +156,13 @@ const PaymentModal = ({ open, onClose, items, onComplete }: PaymentModalProps) =
             </div>
             <h3 className="font-fredoka text-3xl text-foreground mb-2">¡Gracias!</h3>
             <p className="text-muted-foreground">{t('pay.thanks')}</p>
+            {orderId && (
+              <div className="mt-3 p-3 rounded-lg bg-muted/50">
+                <p className="text-sm text-muted-foreground">Order ID</p>
+                <p className="font-fredoka text-xl text-foreground">{orderId}</p>
+                <p className="text-xs text-muted-foreground mt-1">⏳ Waiting for chef to accept...</p>
+              </div>
+            )}
             <p className="text-5xl mt-4">🎉</p>
           </div>
         ) : step === 'error' ? (
