@@ -22,6 +22,17 @@ const CartDrawer = ({ open, onClose, items, onUpdateQty, onRemove, onCheckout }:
 
   const fullAddress = `${deliveryInfo.street}, ${deliveryInfo.city}, ${deliveryInfo.state} ${deliveryInfo.zipCode}`.trim();
 
+  // ZIP-code fallback distances (miles from store at 63118)
+  const zipDistances: Record<string, number> = {
+    '63118': 0, '63104': 1.2, '63111': 1.5, '63116': 1.8, '63110': 2,
+    '63109': 2.5, '63139': 3, '63103': 2.8, '63102': 3.5, '63101': 4,
+    '63106': 3, '63107': 4, '63108': 3.2, '63113': 4.5, '63112': 4,
+    '63143': 3.5, '63117': 3, '63119': 4, '63105': 3.8, '63130': 5,
+    '63122': 6, '63123': 5.5, '63125': 7, '63126': 7.5, '63127': 8,
+    '63128': 9, '63129': 8.5, '63114': 8, '63132': 7, '63133': 6,
+    '63120': 5.5, '63115': 4.5, '63147': 5,
+  };
+
   const handleCheckDistance = async () => {
     if (!deliveryInfo.street.trim() || !deliveryInfo.city.trim()) return;
     setCheckingDistance(true);
@@ -36,10 +47,18 @@ const CartDrawer = ({ open, onClose, items, onUpdateQty, onRemove, onCheckout }:
         const dist = haversineDistance(STORE_LAT, STORE_LNG, lat, lng);
         setDeliveryInfo({ distance: Math.round(dist * 10) / 10 });
       } else {
-        setDeliveryInfo({ distance: 999 });
+        // Geocoding failed — fall back to ZIP-code estimate
+        const zipDist = zipDistances[deliveryInfo.zipCode];
+        if (zipDist !== undefined) {
+          setDeliveryInfo({ distance: zipDist });
+        } else {
+          setDeliveryInfo({ distance: null });
+        }
       }
     } catch {
-      setDeliveryInfo({ distance: null });
+      // Network error — fall back to ZIP-code estimate
+      const zipDist = zipDistances[deliveryInfo.zipCode];
+      setDeliveryInfo({ distance: zipDist !== undefined ? zipDist : null });
     } finally {
       setCheckingDistance(false);
     }
