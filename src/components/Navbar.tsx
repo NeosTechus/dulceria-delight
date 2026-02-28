@@ -1,4 +1,4 @@
-import { ShoppingCart, Menu, X, Globe, LogIn, LogOut, User } from 'lucide-react';
+import { ShoppingCart, Menu, X, Globe, LogIn, LogOut, User, MapPin, Phone, Clock } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -31,16 +31,50 @@ const Navbar = ({ cartCount, onCartClick }: NavbarProps) => {
   ];
 
   return (
-    <motion.nav
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-        scrolled
-          ? 'bg-card/95 backdrop-blur-xl border-b border-border shadow-elevated'
-          : 'bg-card/80 backdrop-blur-md border-b border-border/50'
-      }`}
-      initial={{ y: -80 }}
+    <motion.div
+      className="fixed top-0 left-0 right-0 z-50"
+      initial={{ y: -120 }}
       animate={{ y: 0 }}
       transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
     >
+      {/* Top Info Bar */}
+      <div className="bg-primary text-primary-foreground text-sm">
+        <div className="container mx-auto flex items-center justify-between px-4 py-2">
+          <div className="flex items-center gap-4 flex-wrap">
+            <a href="https://maps.google.com/?q=2753+Cherokee+St,+St.+Louis,+MO+63118" target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 hover:opacity-80 transition-opacity">
+              <MapPin size={14} />
+              <span className="hidden sm:inline">2753 Cherokee St, St. Louis, MO 63118</span>
+              <span className="sm:hidden">2753 Cherokee St</span>
+            </a>
+            <a href="tel:+13147718648" className="flex items-center gap-1.5 hover:opacity-80 transition-opacity">
+              <Phone size={14} />
+              (314) 771-8648
+            </a>
+          </div>
+          <div className="flex items-center gap-3">
+            <span className="hidden sm:flex items-center gap-1.5">
+              <Clock size={14} />
+              Open · Closes 8 PM
+            </span>
+            <button
+              onClick={toggleLang}
+              className="flex items-center gap-1.5 px-2.5 py-1 rounded-full border border-primary-foreground/30 text-xs font-bold hover:bg-primary-foreground/10 transition-colors"
+            >
+              <Globe size={13} />
+              {lang === 'en' ? 'ES' : 'EN'}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Main Navbar */}
+      <nav
+        className={`transition-all duration-300 ${
+          scrolled
+            ? 'bg-card/95 backdrop-blur-xl border-b border-border shadow-elevated'
+            : 'bg-card/80 backdrop-blur-md border-b border-border/50'
+        }`}
+      >
       <div className="container mx-auto flex items-center justify-between py-3.5 px-4">
         <Link to="/" className="font-fredoka text-2xl text-gradient-fiesta hover:scale-105 transition-transform">
           🪅 Dulceria Medina
@@ -66,16 +100,6 @@ const Navbar = ({ cartCount, onCartClick }: NavbarProps) => {
             </Link>
           ))}
 
-          <motion.button
-            onClick={toggleLang}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-border text-sm font-bold text-foreground/70 hover:border-primary/40 hover:text-primary transition-all duration-200"
-            title={lang === 'en' ? 'Cambiar a Español' : 'Switch to English'}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-          >
-            <Globe size={15} />
-            {lang === 'en' ? 'ES' : 'EN'}
-          </motion.button>
 
           {isAuthenticated ? (
             <motion.div className="flex items-center gap-3">
@@ -132,13 +156,6 @@ const Navbar = ({ cartCount, onCartClick }: NavbarProps) => {
         </div>
 
         <div className="flex items-center gap-3 md:hidden">
-          <button
-            onClick={toggleLang}
-            className="flex items-center gap-1 px-2.5 py-1.5 rounded-full border border-border text-xs font-bold text-foreground/70"
-          >
-            <Globe size={14} />
-            {lang === 'en' ? 'ES' : 'EN'}
-          </button>
           <button onClick={onCartClick} className="relative text-primary">
             <ShoppingCart size={24} />
             <AnimatePresence>
@@ -213,7 +230,8 @@ const Navbar = ({ cartCount, onCartClick }: NavbarProps) => {
           </motion.div>
         )}
       </AnimatePresence>
-    </motion.nav>
+      </nav>
+    </motion.div>
   );
 };
 
