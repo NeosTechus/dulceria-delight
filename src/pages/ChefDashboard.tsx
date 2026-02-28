@@ -29,7 +29,7 @@ const statusConfig: Record<string, { bg: string; icon: typeof Clock; label: stri
 
 const ChefDashboard = () => {
   const { user, isAuthenticated } = useAuth();
-  const { orders, updateOrderStatus } = useOrders();
+  const { orders, updateOrderStatus, updatePrepTime } = useOrders();
   const [expandedOrder, setExpandedOrder] = useState<string | null>(null);
   const [collapsedSections, setCollapsedSections] = useState<Record<string, boolean>>({});
 
@@ -290,7 +290,25 @@ const ChefDashboard = () => {
                                         )}
                                         <div>
                                           <p className="text-muted-foreground flex items-center gap-1"><Timer size={14} /> Prep Time</p>
-                                          <p className="font-bold text-foreground">{order.prepMinutes} min</p>
+                                          <div className="flex items-center gap-2 mt-1">
+                                            <motion.button
+                                              type="button"
+                                              onClick={(e) => { e.stopPropagation(); updatePrepTime(order.id, order.prepMinutes - 5); }}
+                                              className="w-8 h-8 rounded-lg bg-muted flex items-center justify-center text-foreground font-bold hover:bg-muted/80"
+                                              whileTap={{ scale: 0.9 }}
+                                            >
+                                              −
+                                            </motion.button>
+                                            <span className="font-fredoka text-lg text-foreground min-w-[50px] text-center">{order.prepMinutes} min</span>
+                                            <motion.button
+                                              type="button"
+                                              onClick={(e) => { e.stopPropagation(); updatePrepTime(order.id, order.prepMinutes + 5); }}
+                                              className="w-8 h-8 rounded-lg bg-muted flex items-center justify-center text-foreground font-bold hover:bg-muted/80"
+                                              whileTap={{ scale: 0.9 }}
+                                            >
+                                              +
+                                            </motion.button>
+                                          </div>
                                         </div>
                                       </div>
                                       <div className="border-t border-border/50 pt-3">

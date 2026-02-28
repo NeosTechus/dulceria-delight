@@ -29,6 +29,7 @@ interface OrderContextType {
   orders: PlacedOrder[];
   placeOrder: (order: Omit<PlacedOrder, 'id' | 'status' | 'createdAt' | 'statusHistory'>) => string;
   updateOrderStatus: (id: string, status: OrderStatus) => void;
+  updatePrepTime: (id: string, minutes: number) => void;
   getOrdersByStatus: (status: OrderStatus) => PlacedOrder[];
 }
 
@@ -63,13 +64,19 @@ export const OrderProvider = ({ children }: { children: ReactNode }) => {
     );
   }, []);
 
+  const updatePrepTime = useCallback((id: string, minutes: number) => {
+    setOrders((prev) =>
+      prev.map((o) => (o.id === id ? { ...o, prepMinutes: Math.max(5, Math.min(minutes, 180)) } : o))
+    );
+  }, []);
+
   const getOrdersByStatus = useCallback(
     (status: OrderStatus) => orders.filter((o) => o.status === status),
     [orders]
   );
 
   return (
-    <OrderContext.Provider value={{ orders, placeOrder, updateOrderStatus, getOrdersByStatus }}>
+    <OrderContext.Provider value={{ orders, placeOrder, updateOrderStatus, updatePrepTime, getOrdersByStatus }}>
       {children}
     </OrderContext.Provider>
   );
