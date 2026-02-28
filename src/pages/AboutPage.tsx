@@ -39,7 +39,7 @@ const AboutPage = () => {
       <Navbar cartCount={cartCount} onCartClick={() => setCartOpen(true)} />
 
       {/* Hero */}
-      <section className="relative h-[55vh] min-h-[400px] flex items-center justify-center overflow-hidden">
+      <section className="relative h-[55vh] min-h-[400px] flex items-center justify-center overflow-hidden pt-[120px]">
         <motion.div
           className="absolute inset-0 bg-cover bg-center"
           style={{ backgroundImage: `url(${store2})` }}

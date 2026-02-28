@@ -49,7 +49,7 @@ const RestaurantMenu = ({ onAddToCart }: RestaurantMenuProps) => {
   return (
     <>
       {/* Menu Hero Banner */}
-      <section className="relative h-[40vh] min-h-[300px] flex items-center justify-center overflow-hidden">
+      <section className="relative h-[40vh] min-h-[300px] flex items-center justify-center overflow-hidden pt-[120px]">
         <motion.div
           className="absolute inset-0 bg-cover bg-center"
           style={{ backgroundImage: `url(${store11})` }}
