@@ -189,9 +189,6 @@ const LoginPage = () => {
               </button>
             </form>
 
-            <p className="text-center text-[11px] text-muted-foreground mt-5">
-              🔒 {lang === 'en' ? 'Customers & staff use the same login' : 'Clientes y staff usan el mismo inicio de sesión'}
-            </p>
           </div>
         </motion.div>
       </div>
