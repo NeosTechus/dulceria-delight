@@ -9,7 +9,14 @@ import {
   ShieldCheck, Truck, ShoppingBag, History, XCircle, Timer
 } from 'lucide-react';
 
-type Tab = 'queue' | 'history';
+
+interface StatusSection {
+  key: string;
+  label: string;
+  emoji: string;
+  color: string;
+  statuses: string[];
+}
 
 const statusConfig: Record<string, { bg: string; icon: typeof Clock; label: string; next?: OrderStatus }> = {
   pending: { bg: 'bg-yellow-500', icon: Clock, label: 'Pending' },
@@ -23,21 +30,37 @@ const statusConfig: Record<string, { bg: string; icon: typeof Clock; label: stri
 const ChefDashboard = () => {
   const { user, isAuthenticated } = useAuth();
   const { orders, updateOrderStatus } = useOrders();
-  const [activeTab, setActiveTab] = useState<Tab>('queue');
   const [expandedOrder, setExpandedOrder] = useState<string | null>(null);
+  const [collapsedSections, setCollapsedSections] = useState<Record<string, boolean>>({});
 
   if (!isAuthenticated || user?.role !== 'chef') {
     return <Navigate to="/login" replace />;
   }
 
-  const activeOrders = orders.filter((o) => !['delivered'].includes(o.status));
-  const historyOrders = orders.filter((o) => o.status === 'delivered');
-  const pendingCount = orders.filter((o) => o.status === 'pending').length;
-  const preparingCount = orders.filter((o) => ['accepted', 'preparing'].includes(o.status)).length;
-  const readyCount = orders.filter((o) => o.status === 'ready').length;
+  const pendingOrders = orders.filter((o) => o.status === 'pending');
+  const preparingOrders = orders.filter((o) => ['accepted', 'preparing'].includes(o.status));
+  const readyOrders = orders.filter((o) => o.status === 'ready');
+  const outForDeliveryOrders = orders.filter((o) => o.status === 'out_for_delivery');
+  const deliveredOrders = orders.filter((o) => o.status === 'delivered');
+
+  const pendingCount = pendingOrders.length;
+  const preparingCount = preparingOrders.length;
+  const readyCount = readyOrders.length;
+  const outCount = outForDeliveryOrders.length;
 
   // Play notification sound when new pending orders arrive
   useOrderNotification(pendingCount);
+
+  const sections: StatusSection[] = [
+    { key: 'pending', label: 'New Orders', emoji: '🔔', color: 'border-yellow-500', statuses: ['pending'] },
+    { key: 'preparing', label: 'Preparing', emoji: '🔥', color: 'border-blue-500', statuses: ['accepted', 'preparing'] },
+    { key: 'ready', label: 'Ready for Pickup / Delivery', emoji: '✅', color: 'border-green-500', statuses: ['ready'] },
+    { key: 'out', label: 'Out for Delivery', emoji: '🚗', color: 'border-purple-500', statuses: ['out_for_delivery'] },
+    { key: 'done', label: 'Completed / Delivered', emoji: '🎉', color: 'border-muted-foreground', statuses: ['delivered'] },
+  ];
+
+  const getOrdersForSection = (section: StatusSection) =>
+    orders.filter((o) => section.statuses.includes(o.status));
 
   const timeAgo = (date: Date) => {
     const mins = Math.floor((Date.now() - date.getTime()) / 60000);
@@ -99,7 +122,8 @@ const ChefDashboard = () => {
     return null;
   };
 
-  const displayOrders = activeTab === 'queue' ? activeOrders : historyOrders;
+  const toggleSection = (key: string) =>
+    setCollapsedSections((prev) => ({ ...prev, [key]: !prev[key] }));
 
   return (
     <div className="min-h-screen bg-muted/30">
@@ -130,12 +154,12 @@ const ChefDashboard = () => {
       </div>
 
       <div className="container mx-auto px-4 py-6">
-        {/* Live Stats */}
-        <div className="grid grid-cols-3 gap-4 mb-6">
+        <div className="grid grid-cols-4 gap-4 mb-6">
           {[
             { label: 'Pending', count: pendingCount, color: 'bg-yellow-500' },
-            { label: 'In Progress', count: preparingCount, color: 'bg-blue-500' },
+            { label: 'Preparing', count: preparingCount, color: 'bg-blue-500' },
             { label: 'Ready', count: readyCount, color: 'bg-green-500' },
+            { label: 'Out', count: outCount, color: 'bg-purple-500' },
           ].map((s) => (
             <motion.div
               key={s.label}
@@ -152,155 +176,148 @@ const ChefDashboard = () => {
           ))}
         </div>
 
-        {/* Tabs */}
-        <div className="flex gap-2 mb-6">
-          <button
-            onClick={() => setActiveTab('queue')}
-            className={`flex items-center gap-2 px-5 py-2.5 rounded-full font-bold text-sm transition-all ${
-              activeTab === 'queue'
-                ? 'bg-gradient-fiesta text-primary-foreground shadow-fiesta'
-                : 'bg-card border border-border text-foreground/70 hover:border-primary/40'
-            }`}
-          >
-            <Flame size={16} /> Live Queue ({activeOrders.length})
-          </button>
-          <button
-            onClick={() => setActiveTab('history')}
-            className={`flex items-center gap-2 px-5 py-2.5 rounded-full font-bold text-sm transition-all ${
-              activeTab === 'history'
-                ? 'bg-gradient-fiesta text-primary-foreground shadow-fiesta'
-                : 'bg-card border border-border text-foreground/70 hover:border-primary/40'
-            }`}
-          >
-            <History size={16} /> History ({historyOrders.length})
-          </button>
-        </div>
+        {/* Grouped Sections */}
+        <div className="space-y-6">
+          {sections.map((section) => {
+            const sectionOrders = getOrdersForSection(section);
+            const isCollapsed = collapsedSections[section.key] ?? (section.key === 'done');
 
-        {/* Orders */}
-        <div className="space-y-4">
-          {displayOrders.length === 0 && (
-            <div className="text-center py-16">
-              <p className="text-5xl mb-4">{activeTab === 'queue' ? '👨‍🍳' : '📋'}</p>
-              <p className="text-muted-foreground font-semibold">
-                {activeTab === 'queue' ? 'No orders in queue — take a breather!' : 'No completed orders yet'}
-              </p>
-            </div>
-          )}
-
-          <AnimatePresence mode="popLayout">
-            {displayOrders.map((order) => {
-              const config = statusConfig[order.status];
-              const isExpanded = expandedOrder === order.id;
-
-              return (
-                <motion.div
-                  key={order.id}
-                  layout
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, x: -100 }}
-                  className={`bg-card rounded-xl border overflow-hidden ${
-                    order.status === 'pending' ? 'border-yellow-500/50 shadow-lg shadow-yellow-500/10' : 'border-border'
-                  }`}
+            return (
+              <div key={section.key}>
+                <button
+                  onClick={() => toggleSection(section.key)}
+                  className={`w-full flex items-center justify-between p-3 rounded-xl border-l-4 ${section.color} bg-card border border-border mb-3 hover:bg-muted/30 transition-colors`}
                 >
-                  {/* Order Header */}
-                  <div
-                    className="p-4 flex items-center justify-between cursor-pointer hover:bg-muted/30 transition-colors"
-                    onClick={() => setExpandedOrder(isExpanded ? null : order.id)}
-                  >
-                    <div className="flex items-center gap-4">
-                      <div className={`w-2 h-12 rounded-full ${config.bg}`} />
-                      <div>
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <span className="font-bold text-foreground">{order.id}</span>
-                          <span className={`px-2 py-0.5 rounded-full text-xs font-bold text-white ${config.bg}`}>
-                            {config.label}
-                          </span>
-                          <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${
-                            order.orderType === 'delivery' ? 'bg-blue-500/10 text-blue-500' : 'bg-primary/10 text-primary'
-                          }`}>
-                            {order.orderType === 'delivery' ? <Truck size={12} className="inline mr-1" /> : <ShoppingBag size={12} className="inline mr-1" />}
-                            {order.orderType}
-                          </span>
-                        </div>
-                        <p className="text-sm text-muted-foreground">
-                          {order.customerName} · {timeAgo(order.createdAt)} · {order.items.length} items · ${order.total.toFixed(2)}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <button className="p-2 rounded-lg hover:bg-muted transition-colors text-muted-foreground">
-                        <Eye size={16} />
-                      </button>
-                      {activeTab === 'queue' && getActionButton(order.id, order.status, order.orderType)}
-                    </div>
+                  <div className="flex items-center gap-3">
+                    <span className="text-xl">{section.emoji}</span>
+                    <h2 className="font-fredoka text-lg text-foreground">{section.label}</h2>
+                    <span className="bg-muted text-muted-foreground text-xs font-bold px-2 py-0.5 rounded-full">
+                      {sectionOrders.length}
+                    </span>
                   </div>
+                  <span className="text-muted-foreground text-sm">{isCollapsed ? '▸' : '▾'}</span>
+                </button>
 
-                  {/* Expanded Details */}
-                  <AnimatePresence>
-                    {isExpanded && (
-                      <motion.div
-                        initial={{ height: 0, opacity: 0 }}
-                        animate={{ height: 'auto', opacity: 1 }}
-                        exit={{ height: 0, opacity: 0 }}
-                        transition={{ duration: 0.3 }}
-                        className="border-t border-border"
-                      >
-                        <div className="p-4 space-y-3">
-                          {/* Customer info */}
-                          <div className="grid grid-cols-2 gap-3 text-sm">
-                            <div>
-                              <p className="text-muted-foreground">📞 Phone</p>
-                              <p className="font-bold text-foreground">{order.customerPhone}</p>
-                            </div>
-                            <div>
-                              <p className="text-muted-foreground">✉️ Email</p>
-                              <p className="font-bold text-foreground">{order.customerEmail}</p>
-                            </div>
-                            {order.deliveryAddress && (
-                              <div className="col-span-2">
-                                <p className="text-muted-foreground">📍 Delivery Address</p>
-                                <p className="font-bold text-foreground">{order.deliveryAddress}</p>
-                              </div>
-                            )}
-                            {order.pickupDate && (
-                              <div>
-                                <p className="text-muted-foreground">📅 Pickup Date</p>
-                                <p className="font-bold text-foreground">{order.pickupDate}</p>
-                              </div>
-                            )}
-                            {order.pickupTime && (
-                              <div>
-                                <p className="text-muted-foreground">🕐 Pickup Time</p>
-                                <p className="font-bold text-foreground">{order.pickupTime}</p>
-                              </div>
-                            )}
-                            <div>
-                              <p className="text-muted-foreground flex items-center gap-1"><Timer size={14} /> Prep Time</p>
-                              <p className="font-bold text-foreground">{order.prepMinutes} min</p>
-                            </div>
-                          </div>
+                {!isCollapsed && (
+                  <div className="space-y-3 pl-2">
+                    {sectionOrders.length === 0 ? (
+                      <p className="text-sm text-muted-foreground py-4 text-center">No orders here</p>
+                    ) : (
+                      <AnimatePresence mode="popLayout">
+                        {sectionOrders.map((order) => {
+                          const config = statusConfig[order.status];
+                          const isExpanded = expandedOrder === order.id;
 
-                          {/* Items */}
-                          <div className="border-t border-border/50 pt-3">
-                            <p className="text-xs font-bold text-muted-foreground mb-2 uppercase">Items</p>
-                            {order.items.map((item, i) => (
-                              <div key={i} className="flex items-center justify-between py-2 border-b border-border/30 last:border-0">
-                                <span className="font-bold text-foreground">
-                                  {item.emoji && <span className="mr-2">{item.emoji}</span>}
-                                  {item.qty}× {item.name}
-                                </span>
+                          return (
+                            <motion.div
+                              key={order.id}
+                              layout
+                              initial={{ opacity: 0, y: 20 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              exit={{ opacity: 0, x: -100 }}
+                              className={`bg-card rounded-xl border overflow-hidden ${
+                                order.status === 'pending' ? 'border-yellow-500/50 shadow-lg shadow-yellow-500/10' : 'border-border'
+                              }`}
+                            >
+                              <div
+                                className="p-4 flex items-center justify-between cursor-pointer hover:bg-muted/30 transition-colors"
+                                onClick={() => setExpandedOrder(isExpanded ? null : order.id)}
+                              >
+                                <div className="flex items-center gap-4">
+                                  <div className={`w-2 h-12 rounded-full ${config.bg}`} />
+                                  <div>
+                                    <div className="flex items-center gap-2 flex-wrap">
+                                      <span className="font-bold text-foreground">{order.id}</span>
+                                      <span className={`px-2 py-0.5 rounded-full text-xs font-bold text-white ${config.bg}`}>
+                                        {config.label}
+                                      </span>
+                                      <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${
+                                        order.orderType === 'delivery' ? 'bg-blue-500/10 text-blue-500' : 'bg-primary/10 text-primary'
+                                      }`}>
+                                        {order.orderType === 'delivery' ? <Truck size={12} className="inline mr-1" /> : <ShoppingBag size={12} className="inline mr-1" />}
+                                        {order.orderType}
+                                      </span>
+                                    </div>
+                                    <p className="text-sm text-muted-foreground">
+                                      {order.customerName} · {timeAgo(order.createdAt)} · {order.items.length} items · ${order.total.toFixed(2)}
+                                    </p>
+                                  </div>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                  <button className="p-2 rounded-lg hover:bg-muted transition-colors text-muted-foreground">
+                                    <Eye size={16} />
+                                  </button>
+                                  {getActionButton(order.id, order.status, order.orderType)}
+                                </div>
                               </div>
-                            ))}
-                          </div>
-                        </div>
-                      </motion.div>
+
+                              <AnimatePresence>
+                                {isExpanded && (
+                                  <motion.div
+                                    initial={{ height: 0, opacity: 0 }}
+                                    animate={{ height: 'auto', opacity: 1 }}
+                                    exit={{ height: 0, opacity: 0 }}
+                                    transition={{ duration: 0.3 }}
+                                    className="border-t border-border"
+                                  >
+                                    <div className="p-4 space-y-3">
+                                      <div className="grid grid-cols-2 gap-3 text-sm">
+                                        <div>
+                                          <p className="text-muted-foreground">📞 Phone</p>
+                                          <p className="font-bold text-foreground">{order.customerPhone}</p>
+                                        </div>
+                                        <div>
+                                          <p className="text-muted-foreground">✉️ Email</p>
+                                          <p className="font-bold text-foreground">{order.customerEmail}</p>
+                                        </div>
+                                        {order.deliveryAddress && (
+                                          <div className="col-span-2">
+                                            <p className="text-muted-foreground">📍 Delivery Address</p>
+                                            <p className="font-bold text-foreground">{order.deliveryAddress}</p>
+                                          </div>
+                                        )}
+                                        {order.pickupDate && (
+                                          <div>
+                                            <p className="text-muted-foreground">📅 Pickup Date</p>
+                                            <p className="font-bold text-foreground">{order.pickupDate}</p>
+                                          </div>
+                                        )}
+                                        {order.pickupTime && (
+                                          <div>
+                                            <p className="text-muted-foreground">🕐 Pickup Time</p>
+                                            <p className="font-bold text-foreground">{order.pickupTime}</p>
+                                          </div>
+                                        )}
+                                        <div>
+                                          <p className="text-muted-foreground flex items-center gap-1"><Timer size={14} /> Prep Time</p>
+                                          <p className="font-bold text-foreground">{order.prepMinutes} min</p>
+                                        </div>
+                                      </div>
+                                      <div className="border-t border-border/50 pt-3">
+                                        <p className="text-xs font-bold text-muted-foreground mb-2 uppercase">Items</p>
+                                        {order.items.map((item, i) => (
+                                          <div key={i} className="flex items-center justify-between py-2 border-b border-border/30 last:border-0">
+                                            <span className="font-bold text-foreground">
+                                              {item.emoji && <span className="mr-2">{item.emoji}</span>}
+                                              {item.qty}× {item.name}
+                                            </span>
+                                          </div>
+                                        ))}
+                                      </div>
+                                    </div>
+                                  </motion.div>
+                                )}
+                              </AnimatePresence>
+                            </motion.div>
+                          );
+                        })}
+                      </AnimatePresence>
                     )}
-                  </AnimatePresence>
-                </motion.div>
-              );
-            })}
-          </AnimatePresence>
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </div>
       </div>
     </div>
@@ -308,3 +325,4 @@ const ChefDashboard = () => {
 };
 
 export default ChefDashboard;
+
