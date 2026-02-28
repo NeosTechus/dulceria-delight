@@ -3,15 +3,17 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X, Clock, CheckCircle, Flame, Package, Truck } from 'lucide-react';
 import { useOrders, type OrderStatus } from '@/contexts/OrderContext';
 
-const statusSteps: { key: OrderStatus; label: string; icon: typeof Clock; emoji: string }[] = [
+const allStatusSteps: { key: OrderStatus; label: string; icon: typeof Clock; emoji: string; deliveryOnly?: boolean }[] = [
   { key: 'pending', label: 'Order Placed', icon: Clock, emoji: '📝' },
   { key: 'accepted', label: 'Chef Accepted', icon: CheckCircle, emoji: '👨‍🍳' },
   { key: 'preparing', label: 'Preparing', icon: Flame, emoji: '🔥' },
   { key: 'ready', label: 'Ready for Pickup', icon: Package, emoji: '✅' },
+  { key: 'out_for_delivery', label: 'Out for Delivery', icon: Truck, emoji: '🚗', deliveryOnly: true },
   { key: 'delivered', label: 'Complete', icon: Truck, emoji: '🎉' },
 ];
 
-const statusIndex = (s: OrderStatus) => statusSteps.findIndex((st) => st.key === s);
+const getSteps = (isDelivery: boolean) => isDelivery ? allStatusSteps : allStatusSteps.filter((st) => !st.deliveryOnly);
+const getStatusIndex = (s: OrderStatus, isDelivery: boolean) => getSteps(isDelivery).findIndex((st) => st.key === s);
 
 const OrderTracker = () => {
   const { orders } = useOrders();
@@ -64,7 +66,9 @@ const OrderTracker = () => {
 
               <div className="p-5 space-y-6">
                 {activeOrders.map((order) => {
-                  const currentIdx = statusIndex(order.status);
+                  const isDelivery = order.orderType === 'delivery';
+                  const steps = getSteps(isDelivery);
+                  const currentIdx = getStatusIndex(order.status, isDelivery);
 
                   return (
                     <div key={order.id} className="border border-border rounded-xl p-4">
@@ -76,13 +80,13 @@ const OrderTracker = () => {
                           </p>
                         </div>
                         <span className="text-2xl">
-                          {statusSteps[currentIdx]?.emoji || '📝'}
+                          {steps[currentIdx]?.emoji || '📝'}
                         </span>
                       </div>
 
                       {/* Progress steps */}
                       <div className="relative">
-                        {statusSteps.slice(0, -1).map((step, i) => {
+                        {steps.slice(0, -1).map((step, i) => {
                           const isComplete = i < currentIdx;
                           const isCurrent = i === currentIdx;
 
@@ -100,7 +104,7 @@ const OrderTracker = () => {
                                 >
                                   {isComplete ? <CheckCircle size={16} /> : <step.icon size={16} />}
                                 </div>
-                                {i < statusSteps.length - 2 && (
+                                {i < steps.length - 2 && (
                                   <div
                                     className={`w-0.5 h-8 ${
                                       isComplete ? 'bg-accent' : 'bg-border'
@@ -121,7 +125,8 @@ const OrderTracker = () => {
                                     {step.key === 'pending' && '⏳ Waiting for chef...'}
                                     {step.key === 'accepted' && '👨‍🍳 Chef is getting ready!'}
                                     {step.key === 'preparing' && '🔥 Your food is being made!'}
-                                    {step.key === 'ready' && '✅ Come pick it up!'}
+                                    {step.key === 'ready' && (isDelivery ? '📦 Getting ready for delivery!' : '✅ Come pick it up!')}
+                                    {step.key === 'out_for_delivery' && '🚗 On the way to you!'}
                                   </p>
                                 )}
                               </div>

@@ -1,7 +1,7 @@
 import { createContext, useContext, useState, useCallback, ReactNode } from 'react';
 import { type CartItem } from '@/data/menu';
 
-export type OrderStatus = 'pending' | 'accepted' | 'preparing' | 'ready' | 'delivered';
+export type OrderStatus = 'pending' | 'accepted' | 'preparing' | 'ready' | 'out_for_delivery' | 'delivered';
 
 export interface StatusChange {
   status: OrderStatus;

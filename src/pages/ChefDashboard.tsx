@@ -14,7 +14,8 @@ const statusConfig: Record<string, { bg: string; icon: typeof Clock; label: stri
   pending: { bg: 'bg-yellow-500', icon: Clock, label: 'Pending' },
   accepted: { bg: 'bg-blue-400', icon: CheckCircle, label: 'Accepted', next: 'preparing' },
   preparing: { bg: 'bg-blue-600', icon: Flame, label: 'Preparing', next: 'ready' },
-  ready: { bg: 'bg-green-500', icon: CheckCircle, label: 'Ready', next: 'delivered' },
+  ready: { bg: 'bg-green-500', icon: CheckCircle, label: 'Ready' },
+  out_for_delivery: { bg: 'bg-purple-500', icon: Truck, label: 'Out for Delivery', next: 'delivered' },
   delivered: { bg: 'bg-emerald-600', icon: ShieldCheck, label: 'Done' },
 };
 
@@ -41,7 +42,7 @@ const ChefDashboard = () => {
     return `${Math.floor(mins / 60)}h ago`;
   };
 
-  const getActionButton = (orderId: string, status: OrderStatus) => {
+  const getActionButton = (orderId: string, status: OrderStatus, orderType: 'pickup' | 'delivery') => {
     if (status === 'pending') {
       return (
         <div className="flex items-center gap-2">
@@ -64,16 +65,25 @@ const ChefDashboard = () => {
         </div>
       );
     }
-    const config = statusConfig[status];
-    if (config?.next) {
+
+    // For "ready" status, next depends on order type
+    let nextStatus: OrderStatus | undefined;
+    if (status === 'ready') {
+      nextStatus = orderType === 'delivery' ? 'out_for_delivery' : 'delivered';
+    } else {
+      nextStatus = statusConfig[status]?.next;
+    }
+
+    if (nextStatus) {
       const labels: Record<string, string> = {
         accepted: '🔥 Start Preparing',
         preparing: '✅ Mark Ready',
-        ready: '📦 Complete',
+        ready: orderType === 'delivery' ? '🚗 Out for Delivery' : '📦 Complete',
+        out_for_delivery: '✅ Delivered',
       };
       return (
         <motion.button
-          onClick={(e) => { e.stopPropagation(); updateOrderStatus(orderId, config.next!); }}
+          onClick={(e) => { e.stopPropagation(); updateOrderStatus(orderId, nextStatus!); }}
           className="px-4 py-2 rounded-lg bg-gradient-fiesta text-primary-foreground font-bold text-sm flex items-center gap-2"
           whileHover={{ scale: 1.03 }}
           whileTap={{ scale: 0.97 }}
@@ -218,7 +228,7 @@ const ChefDashboard = () => {
                       <button className="p-2 rounded-lg hover:bg-muted transition-colors text-muted-foreground">
                         <Eye size={16} />
                       </button>
-                      {activeTab === 'queue' && getActionButton(order.id, order.status)}
+                      {activeTab === 'queue' && getActionButton(order.id, order.status, order.orderType)}
                     </div>
                   </div>
 

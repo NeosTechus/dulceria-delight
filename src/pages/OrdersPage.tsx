@@ -8,21 +8,26 @@ import Navbar from '@/components/Navbar';
 import { useCart } from '@/contexts/CartContext';
 import Footer from '@/components/Footer';
 
-const statusSteps: { key: OrderStatus; label: string; emoji: string }[] = [
+const statusSteps: { key: OrderStatus; label: string; emoji: string; deliveryOnly?: boolean }[] = [
   { key: 'pending', label: 'Order Placed', emoji: '📝' },
   { key: 'accepted', label: 'Chef Accepted', emoji: '👨‍🍳' },
   { key: 'preparing', label: 'Preparing', emoji: '🔥' },
   { key: 'ready', label: 'Ready', emoji: '✅' },
+  { key: 'out_for_delivery', label: 'Out for Delivery', emoji: '🚗', deliveryOnly: true },
   { key: 'delivered', label: 'Complete', emoji: '🎉' },
 ];
 
-const statusIndex = (s: OrderStatus) => statusSteps.findIndex((st) => st.key === s);
+const statusIndex = (s: OrderStatus, isDelivery: boolean) => {
+  const steps = isDelivery ? statusSteps : statusSteps.filter((st) => !st.deliveryOnly);
+  return steps.findIndex((st) => st.key === s);
+};
 
 const statusColors: Record<OrderStatus, string> = {
   pending: 'bg-yellow-500',
   accepted: 'bg-blue-400',
   preparing: 'bg-blue-600',
   ready: 'bg-green-500',
+  out_for_delivery: 'bg-purple-500',
   delivered: 'bg-muted-foreground',
 };
 
@@ -151,7 +156,10 @@ const OrdersPage = () => {
               </h2>
               <div className="space-y-4">
                 {activeOrders.map((order) => {
-                  const currentIdx = statusIndex(order.status);
+                  const isDelivery = order.orderType === 'delivery';
+                  const visibleSteps = isDelivery ? statusSteps : statusSteps.filter((st) => !st.deliveryOnly);
+                  const currentIdx = statusIndex(order.status, isDelivery);
+                  const currentStep = visibleSteps[currentIdx];
                   return (
                     <div key={order.id} className="bg-card border border-border rounded-2xl p-5 overflow-hidden">
                       <div className="flex items-center justify-between mb-4">
@@ -159,12 +167,12 @@ const OrdersPage = () => {
                           <div className="flex items-center gap-2">
                             <span className="font-bold text-foreground text-lg">{order.id}</span>
                             <span className={`px-2 py-0.5 rounded-full text-xs font-bold text-white ${statusColors[order.status]}`}>
-                              {statusSteps[currentIdx]?.label}
+                              {currentStep?.label}
                             </span>
                             <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${
-                              order.orderType === 'delivery' ? 'bg-blue-500/10 text-blue-500' : 'bg-primary/10 text-primary'
+                              isDelivery ? 'bg-blue-500/10 text-blue-500' : 'bg-primary/10 text-primary'
                             }`}>
-                              {order.orderType === 'delivery' ? <Truck size={12} className="inline mr-1" /> : <ShoppingBag size={12} className="inline mr-1" />}
+                              {isDelivery ? <Truck size={12} className="inline mr-1" /> : <ShoppingBag size={12} className="inline mr-1" />}
                               {order.orderType}
                             </span>
                           </div>
@@ -172,12 +180,12 @@ const OrdersPage = () => {
                             {timeAgo(order.createdAt)} · {order.items.length} items · ${order.total.toFixed(2)}
                           </p>
                         </div>
-                        <span className="text-3xl">{statusSteps[currentIdx]?.emoji}</span>
+                        <span className="text-3xl">{currentStep?.emoji}</span>
                       </div>
 
                       {/* Progress bar */}
                       <div className="flex items-center gap-1 mb-3">
-                        {statusSteps.slice(0, -1).map((step, i) => (
+                        {visibleSteps.slice(0, -1).map((step, i) => (
                           <div
                             key={step.key}
                             className={`h-1.5 flex-1 rounded-full transition-colors ${
@@ -189,7 +197,7 @@ const OrdersPage = () => {
 
                       {/* Step labels */}
                       <div className="flex justify-between text-[10px] text-muted-foreground mb-4">
-                        {statusSteps.slice(0, -1).map((step, i) => (
+                        {visibleSteps.slice(0, -1).map((step, i) => (
                           <span key={step.key} className={i <= currentIdx ? 'text-primary font-bold' : ''}>
                             {step.label}
                           </span>
@@ -249,7 +257,7 @@ const OrdersPage = () => {
                           {order.statusHistory.map((h, i) => (
                             <span key={i} className="flex items-center gap-1">
                               <span className={`w-1.5 h-1.5 rounded-full ${statusColors[h.status]}`} />
-                              {statusSteps[statusIndex(h.status)]?.label} — {formatTime(h.at)}
+                              {statusSteps[statusIndex(h.status, order.orderType === 'delivery')]?.label} — {formatTime(h.at)}
                             </span>
                           ))}
                         </div>
