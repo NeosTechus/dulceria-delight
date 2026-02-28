@@ -10,6 +10,7 @@ import { OrderProvider } from "@/contexts/OrderContext";
 import { AnimatePresence } from "framer-motion";
 import PageTransition from "@/components/PageTransition";
 import Index from "./pages/Index";
+import OrderTracker from "./components/OrderTracker";
 import MenuPage from "./pages/MenuPage";
 import CandyShopPage from "./pages/CandyShopPage";
 import AboutPage from "./pages/AboutPage";
@@ -49,6 +50,7 @@ const App = () => (
             <BrowserRouter>
               <AuthProvider>
                 <AnimatedRoutes />
+                <OrderTracker />
               </AuthProvider>
             </BrowserRouter>
           </TooltipProvider>
