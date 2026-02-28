@@ -19,17 +19,14 @@ const CartDrawer = ({ open, onClose, items, onUpdateQty, onRemove, onCheckout }:
   const { orderType, setOrderType, deliveryInfo, setDeliveryInfo, canDeliver, deliveryError } = useCart();
   const [checkingDistance, setCheckingDistance] = useState(false);
 
-  const handleAddressChange = (address: string) => {
-    setDeliveryInfo({ address, distance: null });
-  };
+  const fullAddress = `${deliveryInfo.street}, ${deliveryInfo.city}, ${deliveryInfo.state} ${deliveryInfo.zipCode}`.trim();
 
   const handleCheckDistance = async () => {
-    if (!deliveryInfo.address.trim()) return;
+    if (!deliveryInfo.street.trim() || !deliveryInfo.city.trim()) return;
     setCheckingDistance(true);
 
     try {
-      // Use browser Geocoding if available, otherwise estimate by zip
-      const encoded = encodeURIComponent(deliveryInfo.address + ', USA');
+      const encoded = encodeURIComponent(`${fullAddress}, USA`);
       const res = await fetch(`https://nominatim.openstreetmap.org/search?q=${encoded}&format=json&limit=1`);
       const data = await res.json();
       if (data.length > 0) {
@@ -38,7 +35,7 @@ const CartDrawer = ({ open, onClose, items, onUpdateQty, onRemove, onCheckout }:
         const dist = haversineDistance(STORE_LAT, STORE_LNG, lat, lng);
         setDeliveryInfo({ distance: Math.round(dist * 10) / 10 });
       } else {
-        setDeliveryInfo({ distance: 999 }); // unknown — will fail validation
+        setDeliveryInfo({ distance: 999 });
       }
     } catch {
       setDeliveryInfo({ distance: null });
@@ -138,17 +135,52 @@ const CartDrawer = ({ open, onClose, items, onUpdateQty, onRemove, onCheckout }:
                   {orderType === 'delivery' && (
                     <div className="mt-3 space-y-3">
                       <div>
+                        <label className="block text-xs font-bold text-foreground mb-1">Street Address</label>
                         <input
                           type="text"
-                          placeholder="Enter your full address..."
-                          value={deliveryInfo.address}
-                          onChange={(e) => handleAddressChange(e.target.value)}
+                          placeholder="123 Main St, Apt 4B"
+                          value={deliveryInfo.street}
+                          onChange={(e) => setDeliveryInfo({ street: e.target.value, distance: null })}
                           className="w-full px-3 py-2.5 rounded-lg border border-input bg-background text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
                         />
                       </div>
+                      <div className="grid grid-cols-3 gap-2">
+                        <div className="col-span-1">
+                          <label className="block text-xs font-bold text-foreground mb-1">City</label>
+                          <input
+                            type="text"
+                            placeholder="St. Louis"
+                            value={deliveryInfo.city}
+                            onChange={(e) => setDeliveryInfo({ city: e.target.value, distance: null })}
+                            className="w-full px-3 py-2.5 rounded-lg border border-input bg-background text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-bold text-foreground mb-1">State</label>
+                          <input
+                            type="text"
+                            placeholder="MO"
+                            maxLength={2}
+                            value={deliveryInfo.state}
+                            onChange={(e) => setDeliveryInfo({ state: e.target.value.toUpperCase(), distance: null })}
+                            className="w-full px-3 py-2.5 rounded-lg border border-input bg-background text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-bold text-foreground mb-1">ZIP Code</label>
+                          <input
+                            type="text"
+                            placeholder="63118"
+                            maxLength={5}
+                            value={deliveryInfo.zipCode}
+                            onChange={(e) => setDeliveryInfo({ zipCode: e.target.value, distance: null })}
+                            className="w-full px-3 py-2.5 rounded-lg border border-input bg-background text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                          />
+                        </div>
+                      </div>
                       <button
                         onClick={handleCheckDistance}
-                        disabled={!deliveryInfo.address.trim() || checkingDistance}
+                        disabled={!deliveryInfo.street.trim() || !deliveryInfo.city.trim() || checkingDistance}
                         className="w-full py-2 rounded-lg bg-muted text-foreground font-bold text-xs hover:bg-muted/80 transition-colors disabled:opacity-50"
                       >
                         {checkingDistance ? 'Checking...' : deliveryInfo.distance !== null ? `${deliveryInfo.distance} miles away — Check again` : 'Check delivery availability'}

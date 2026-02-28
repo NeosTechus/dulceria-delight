@@ -4,7 +4,9 @@ import { type CartItem, type MenuItem, type CandyItem } from '@/data/menu';
 export type OrderType = 'pickup' | 'delivery';
 
 interface DeliveryInfo {
-  address: string;
+  street: string;
+  city: string;
+  state: string;
   zipCode: string;
   distance: number | null; // miles from store
 }
@@ -50,7 +52,9 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
   const [cartOpen, setCartOpen] = useState(false);
   const [orderType, setOrderType] = useState<OrderType>('pickup');
   const [deliveryInfo, setDeliveryInfoState] = useState<DeliveryInfo>({
-    address: '',
+    street: '',
+    city: '',
+    state: '',
     zipCode: '',
     distance: null,
   });
