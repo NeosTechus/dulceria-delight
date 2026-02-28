@@ -19,7 +19,7 @@ const translations: Record<string, Record<Lang, string>> = {
   'hero.subtitle': { en: '🇲🇽 Mexican Candy • Piñatas • Fresh Kitchen', es: '🇲🇽 Dulces Mexicanos • Piñatas • Cocina Fresca' },
   'hero.desc': { en: "St. Louis's favorite spot for authentic Mexican treats & flavors", es: 'El lugar favorito de St. Louis para dulces y sabores mexicanos auténticos' },
   'hero.location': { en: '📍 Cherokee Street, St. Louis', es: '📍 Cherokee Street, St. Louis' },
-  'hero.orderNow': { en: '🍽️ Order Now', es: '🍽️ Ordenar Ahora' },
+  'hero.orderNow': { en: '🍽️ Ready to Eat', es: '🍽️ Listo para Comer' },
   'hero.exploreCandyShop': { en: '🪅 Explore Candy Shop', es: '🪅 Explorar Dulcería' },
 
   // Highlights
