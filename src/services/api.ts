@@ -1,0 +1,56 @@
+import { API_BASE_URL } from '@/config/api';
+import type { CartItem } from '@/data/menu';
+
+async function request<T>(endpoint: string, options?: RequestInit): Promise<T> {
+  const res = await fetch(`${API_BASE_URL}${endpoint}`, {
+    headers: { 'Content-Type': 'application/json' },
+    ...options,
+  });
+  if (!res.ok) {
+    const error = await res.json().catch(() => ({ message: 'Request failed' }));
+    throw new Error(error.message || `HTTP ${res.status}`);
+  }
+  return res.json();
+}
+
+// ─── Orders ───────────────────────────────────────────────────────────
+export interface Order {
+  _id: string;
+  items: CartItem[];
+  total: number;
+  tax: number;
+  status: 'pending' | 'preparing' | 'ready' | 'completed';
+  customerName: string;
+  customerPhone: string;
+  stripePaymentIntentId?: string;
+  createdAt: string;
+}
+
+export const ordersApi = {
+  create: (data: { items: CartItem[]; customerName: string; customerPhone: string }) =>
+    request<{ order: Order; clientSecret: string }>('/orders', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+
+  getById: (id: string) => request<Order>(`/orders/${id}`),
+
+  list: () => request<Order[]>('/orders'),
+
+  updateStatus: (id: string, status: Order['status']) =>
+    request<Order>(`/orders/${id}/status`, {
+      method: 'PATCH',
+      body: JSON.stringify({ status }),
+    }),
+};
+
+// ─── Menu (if you want to serve menu from DB) ────────────────────────
+export const menuApi = {
+  list: () => request<any[]>('/menu'),
+  create: (item: any) =>
+    request('/menu', { method: 'POST', body: JSON.stringify(item) }),
+  update: (id: string, item: any) =>
+    request(`/menu/${id}`, { method: 'PUT', body: JSON.stringify(item) }),
+  delete: (id: string) =>
+    request(`/menu/${id}`, { method: 'DELETE' }),
+};
