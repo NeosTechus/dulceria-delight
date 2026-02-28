@@ -35,8 +35,12 @@ const PaymentModal = ({ open, onClose, items, onComplete }: PaymentModalProps) =
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
-  const [deliveryAddress, setDeliveryAddress] = useState('');
+  const [street, setStreet] = useState('');
+  const [city, setCity] = useState('Saint Louis');
+  const [state, setState] = useState('MO');
+  const [zip, setZip] = useState('');
   const [addressError, setAddressError] = useState('');
+  const [distanceMiles, setDistanceMiles] = useState<number | null>(null);
   const [pickupDate, setPickupDate] = useState<Date>();
   const [pickupTime, setPickupTime] = useState('');
   const { orderType } = useCart();
@@ -54,18 +58,47 @@ const PaymentModal = ({ open, onClose, items, onComplete }: PaymentModalProps) =
   }, 0);
   const prepTime = Math.max(15, Math.min(prepMinutes, 90)); // clamp 15–90 min
 
-  // Delivery zones near 3515 Cherokee St, St. Louis
-  const deliveryZones = [
-    'Cherokee Street', 'Benton Park', 'Gravois Park', 'Dutchtown',
-    'Tower Grove South', 'Tower Grove East', 'Marine Villa', 'South Grand',
-    'Fox Park', 'Soulard', 'Carondelet', 'Holly Hills',
-  ];
+  // St. Louis ZIP codes with approximate distance (miles) from store at 63118
+  const MAX_DELIVERY_MILES = 10;
+  const MIN_DELIVERY_ORDER = 25;
+  const stlZipDistances: Record<string, number> = {
+    '63118': 0, '63104': 1.2, '63111': 1.5, '63116': 1.8, '63110': 2,
+    '63109': 2.5, '63139': 3, '63103': 2.8, '63102': 3.5, '63101': 4,
+    '63106': 3, '63107': 4, '63108': 3.2, '63113': 4.5, '63112': 4,
+    '63143': 3.5, '63117': 3, '63119': 4, '63105': 3.8, '63130': 5,
+    '63122': 6, '63123': 5.5, '63125': 7, '63126': 7.5, '63127': 8,
+    '63128': 9, '63129': 8.5, '63114': 8, '63132': 7, '63133': 6,
+    '63120': 5.5, '63115': 4.5, '63147': 5,
+  };
 
-  const validateAddress = (addr: string) => {
-    if (!addr.trim()) return 'Please enter a delivery address';
-    if (addr.trim().length < 10) return 'Please enter a full street address';
+  const checkDistance = (zipCode: string) => {
+    const dist = stlZipDistances[zipCode];
+    if (dist !== undefined) {
+      setDistanceMiles(dist);
+      if (dist > MAX_DELIVERY_MILES) {
+        setAddressError(`Delivery is only available within ${MAX_DELIVERY_MILES} miles. Your location is ${dist} miles away.`);
+      } else if (grandTotal < MIN_DELIVERY_ORDER) {
+        setAddressError(`Minimum order for delivery is $${MIN_DELIVERY_ORDER}.`);
+      } else {
+        setAddressError('');
+      }
+    } else {
+      // Unknown ZIP — assume too far or not in St. Louis
+      setDistanceMiles(null);
+      setAddressError('We could not verify this ZIP code. Please use a St. Louis area ZIP.');
+    }
+  };
+
+  const validateDelivery = () => {
+    if (!street.trim()) return 'Please enter a street address';
+    if (!zip.trim() || zip.length < 5) return 'Please enter a valid ZIP code';
+    if (distanceMiles !== null && distanceMiles > MAX_DELIVERY_MILES)
+      return `Delivery is only available within ${MAX_DELIVERY_MILES} miles. Your location is ${distanceMiles} miles away.`;
+    if (distanceMiles === null) return 'Please enter a valid St. Louis area ZIP code';
     return '';
   };
+
+  const fullDeliveryAddress = `${street}, ${city}, ${state} ${zip}`;
 
   // Generate pickup slots starting from now + prep time, in 15-min increments
   const generateTimeSlots = () => {
@@ -100,7 +133,7 @@ const PaymentModal = ({ open, onClose, items, onComplete }: PaymentModalProps) =
     e.preventDefault();
 
     if (orderType === 'delivery') {
-      const err = validateAddress(deliveryAddress);
+      const err = validateDelivery();
       if (err) { setAddressError(err); return; }
     }
 
@@ -112,7 +145,7 @@ const PaymentModal = ({ open, onClose, items, onComplete }: PaymentModalProps) =
         customerPhone: phone,
         customerEmail: email,
         orderType,
-        deliveryAddress: orderType === 'delivery' ? deliveryAddress : undefined,
+        deliveryAddress: orderType === 'delivery' ? fullDeliveryAddress : undefined,
         pickupDate: pickupDate ? format(pickupDate, 'MMM d, yyyy') : undefined,
         pickupTime: pickupTime || undefined,
         total: grandTotal,
@@ -127,7 +160,11 @@ const PaymentModal = ({ open, onClose, items, onComplete }: PaymentModalProps) =
         setName('');
         setPhone('');
         setEmail('');
-        setDeliveryAddress('');
+        setStreet('');
+        setCity('Saint Louis');
+        setState('MO');
+        setZip('');
+        setDistanceMiles(null);
         setAddressError('');
         setPickupDate(undefined);
         setPickupTime('');
@@ -284,42 +321,78 @@ const PaymentModal = ({ open, onClose, items, onComplete }: PaymentModalProps) =
                        <div className="flex items-center gap-2 p-3 rounded-lg bg-primary/10 text-sm">
                          <Truck size={16} className="text-primary shrink-0" />
                          <span className="text-foreground">
-                           Delivery within <strong>~5 miles</strong> of Cherokee St, St. Louis
+                           Delivery within <strong>~{MAX_DELIVERY_MILES} miles</strong> of Cherokee St · Min. order: <strong>${MIN_DELIVERY_ORDER}</strong>
                          </span>
                        </div>
+
                        <div>
-                         <label className="block text-sm font-bold text-foreground mb-1">
-                           <MapPin size={14} className="inline mr-1" />Delivery Address
-                         </label>
+                         <label className="block text-sm font-bold text-foreground mb-1">Street Address</label>
                          <input
                            type="text"
-                           value={deliveryAddress}
-                           onChange={(e) => { setDeliveryAddress(e.target.value); setAddressError(''); }}
-                           placeholder="123 Main St, St. Louis, MO 63118"
-                           className={cn(
-                             "w-full px-4 py-3 rounded-lg border bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring",
-                             addressError ? 'border-destructive' : 'border-input'
-                           )}
+                           value={street}
+                           onChange={(e) => { setStreet(e.target.value); setAddressError(''); }}
+                           placeholder="3040A, 3949 Apts, Lindell Blvd"
+                           className="w-full px-4 py-3 rounded-lg border border-input bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
                          />
-                         {addressError && (
-                           <p className="text-xs text-destructive mt-1">{addressError}</p>
-                         )}
                        </div>
-                       <div>
-                         <p className="text-xs font-bold text-muted-foreground mb-2">📍 Suggested areas we deliver to:</p>
-                         <div className="flex flex-wrap gap-1.5">
-                           {deliveryZones.map((zone) => (
-                             <button
-                               key={zone}
-                               type="button"
-                               onClick={() => { setDeliveryAddress((prev) => prev ? prev : zone + ', St. Louis, MO'); setAddressError(''); }}
-                               className="text-xs px-2.5 py-1 rounded-full border border-border bg-muted/50 text-foreground hover:bg-primary/10 hover:border-primary/40 transition-colors"
-                             >
-                               {zone}
-                             </button>
-                           ))}
+
+                       <div className="grid grid-cols-3 gap-3">
+                         <div>
+                           <label className="block text-sm font-bold text-foreground mb-1">City</label>
+                           <input
+                             type="text"
+                             value={city}
+                             onChange={(e) => setCity(e.target.value)}
+                             className="w-full px-4 py-3 rounded-lg border border-input bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                           />
+                         </div>
+                         <div>
+                           <label className="block text-sm font-bold text-foreground mb-1">State</label>
+                           <input
+                             type="text"
+                             value={state}
+                             onChange={(e) => setState(e.target.value.toUpperCase().slice(0, 2))}
+                             maxLength={2}
+                             className="w-full px-4 py-3 rounded-lg border border-input bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                           />
+                         </div>
+                         <div>
+                           <label className="block text-sm font-bold text-foreground mb-1">ZIP Code</label>
+                           <input
+                             type="text"
+                             value={zip}
+                             onChange={(e) => {
+                               const v = e.target.value.replace(/\D/g, '').slice(0, 5);
+                               setZip(v);
+                               setAddressError('');
+                               if (v.length === 5) checkDistance(v);
+                               else setDistanceMiles(null);
+                             }}
+                             maxLength={5}
+                             placeholder="63118"
+                             className="w-full px-4 py-3 rounded-lg border border-input bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                           />
                          </div>
                        </div>
+
+                       {/* Distance result */}
+                       {distanceMiles !== null && (
+                         <div className={cn(
+                           "px-4 py-2.5 rounded-lg text-sm font-bold text-center",
+                           distanceMiles <= MAX_DELIVERY_MILES ? 'bg-accent/10 text-accent' : 'bg-muted text-muted-foreground'
+                         )}>
+                           {distanceMiles <= MAX_DELIVERY_MILES
+                             ? `✅ ${distanceMiles} miles away — Delivery available!`
+                             : `${distanceMiles} miles away — Check again`}
+                         </div>
+                       )}
+
+                       {addressError && (
+                         <div className="flex items-start gap-2 p-3 rounded-lg bg-destructive/10 text-sm text-destructive">
+                           <AlertCircle size={16} className="shrink-0 mt-0.5" />
+                           {addressError}
+                         </div>
+                       )}
                      </div>
                    )}
 
@@ -378,7 +451,7 @@ const PaymentModal = ({ open, onClose, items, onComplete }: PaymentModalProps) =
 
                    <button
                      type="submit"
-                     disabled={loading || (orderType === 'pickup' && (!pickupDate || !pickupTime)) || (orderType === 'delivery' && !deliveryAddress.trim())}
+                     disabled={loading || (orderType === 'pickup' && (!pickupDate || !pickupTime)) || (orderType === 'delivery' && (!street.trim() || !zip.trim() || distanceMiles === null || distanceMiles > MAX_DELIVERY_MILES))}
                      className="w-full bg-gradient-fiesta text-primary-foreground font-bold py-4 rounded-xl text-lg shadow-fiesta hover:scale-[1.02] transition-transform mt-2 disabled:opacity-50"
                    >
                      {loading ? 'Creating order...' : isStripeConfigured ? 'Continue to Payment' : `Pay $${grandTotal.toFixed(2)}`}
