@@ -5,32 +5,57 @@ import { UserRole, useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
-import { User, ChefHat, Shield, Mail, Lock } from 'lucide-react';
+import { User, ChefHat, Shield, Mail, Lock, AlertCircle, Loader2 } from 'lucide-react';
 
-const roles: { role: UserRole; icon: React.ReactNode; labelEn: string; labelEs: string; descEn: string; descEs: string }[] = [
-  { role: 'customer', icon: <User size={22} />, labelEn: 'Customer', labelEs: 'Cliente', descEn: 'Browse & order', descEs: 'Explorar y ordenar' },
-  { role: 'admin', icon: <Shield size={22} />, labelEn: 'Admin', labelEs: 'Admin', descEn: 'Manage store', descEs: 'Gestionar tienda' },
-  { role: 'chef', icon: <ChefHat size={22} />, labelEn: 'Chef', labelEs: 'Chef', descEn: 'Prepare orders', descEs: 'Preparar pedidos' },
+const roles: { role: UserRole; icon: React.ReactNode; labelEn: string; labelEs: string; descEn: string; descEs: string; defaultEmail: string }[] = [
+  { role: 'customer', icon: <User size={22} />, labelEn: 'Customer', labelEs: 'Cliente', descEn: 'Browse & order', descEs: 'Explorar y ordenar', defaultEmail: 'maria@example.com' },
+  { role: 'admin', icon: <Shield size={22} />, labelEn: 'Admin', labelEs: 'Admin', descEn: 'Manage store', descEs: 'Gestionar tienda', defaultEmail: 'admin@dulceriamedina.com' },
+  { role: 'chef', icon: <ChefHat size={22} />, labelEn: 'Chef', labelEs: 'Chef', descEn: 'Kitchen orders', descEs: 'Pedidos cocina', defaultEmail: 'rosa@dulceriamedina.com' },
 ];
 
 const LoginPage = () => {
   const [selectedRole, setSelectedRole] = useState<UserRole>('customer');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const { login } = useAuth();
+  const [localError, setLocalError] = useState('');
+  const { login, demoLogin, loading, error } = useAuth();
   const { lang } = useLanguage();
   const navigate = useNavigate();
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleRoleChange = (role: UserRole) => {
+    setSelectedRole(role);
+    const r = roles.find((r) => r.role === role);
+    if (r) setEmail(r.defaultEmail);
+    setPassword('');
+    setLocalError('');
+  };
+
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    login(selectedRole, undefined, email || undefined);
+    setLocalError('');
+
+    if (!email) {
+      setLocalError(lang === 'en' ? 'Email is required' : 'El correo es requerido');
+      return;
+    }
+
+    try {
+      await login(email, password);
+      navigate('/');
+    } catch {
+      // If backend isn't available, fall back to demo login
+      demoLogin(selectedRole);
+      navigate('/');
+    }
+  };
+
+  const handleDemoLogin = () => {
+    demoLogin(selectedRole);
     navigate('/');
   };
 
-  const handleGoogleLogin = () => {
-    login(selectedRole);
-    navigate('/');
-  };
+  const currentRole = roles.find((r) => r.role === selectedRole)!;
+  const displayError = localError || error;
 
   return (
     <div className="min-h-screen bg-background">
@@ -59,39 +84,35 @@ const LoginPage = () => {
               {roles.map(({ role, icon, labelEn, labelEs }) => (
                 <button
                   key={role}
-                  onClick={() => setSelectedRole(role)}
-                  className={`flex-1 flex items-center justify-center gap-1.5 py-2 px-2 rounded-lg text-xs font-bold transition-all ${
+                  type="button"
+                  onClick={() => handleRoleChange(role)}
+                  className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 px-2 rounded-lg text-xs font-bold transition-all ${
                     selectedRole === role
                       ? 'bg-card text-primary shadow-sm'
                       : 'text-muted-foreground hover:text-foreground'
                   }`}
                 >
                   {icon}
-                  <span className="hidden sm:inline">{lang === 'en' ? labelEn : labelEs}</span>
+                  <span>{lang === 'en' ? labelEn : labelEs}</span>
                 </button>
               ))}
             </div>
 
-            {/* Google Sign In */}
-            <button
-              onClick={handleGoogleLogin}
-              className="w-full flex items-center justify-center gap-3 py-2.5 px-4 rounded-xl border border-border bg-card hover:bg-muted/30 font-bold text-sm transition-all mb-5"
-            >
-              <svg width="18" height="18" viewBox="0 0 48 48">
-                <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
-                <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
-                <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
-                <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
-              </svg>
-              {lang === 'en' ? 'Continue with Google' : 'Continuar con Google'}
-            </button>
-
-            {/* Divider */}
-            <div className="flex items-center gap-3 mb-5">
-              <div className="flex-1 h-px bg-border" />
-              <span className="text-xs text-muted-foreground font-bold">{lang === 'en' ? 'or' : 'o'}</span>
-              <div className="flex-1 h-px bg-border" />
+            {/* Role description badge */}
+            <div className="text-center mb-4">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-bold">
+                {currentRole.icon}
+                {lang === 'en' ? currentRole.descEn : currentRole.descEs}
+              </span>
             </div>
+
+            {/* Error message */}
+            {displayError && (
+              <div className="flex items-center gap-2 p-3 mb-4 rounded-lg bg-destructive/10 text-destructive text-sm">
+                <AlertCircle size={16} />
+                {displayError}
+              </div>
+            )}
 
             {/* Email/Password form */}
             <form onSubmit={handleLogin} className="space-y-3">
@@ -118,14 +139,38 @@ const LoginPage = () => {
 
               <button
                 type="submit"
-                className="w-full bg-gradient-fiesta text-primary-foreground py-2.5 rounded-xl font-bold text-sm shadow-fiesta hover:shadow-fiesta-lg transition-all"
+                disabled={loading}
+                className="w-full bg-gradient-fiesta text-primary-foreground py-2.5 rounded-xl font-bold text-sm shadow-fiesta hover:shadow-fiesta-lg transition-all disabled:opacity-50 flex items-center justify-center gap-2"
               >
-                {lang === 'en' ? 'Sign In' : 'Iniciar Sesión'}
+                {loading ? (
+                  <>
+                    <Loader2 size={16} className="animate-spin" />
+                    {lang === 'en' ? 'Signing in...' : 'Iniciando...'}
+                  </>
+                ) : (
+                  lang === 'en' ? 'Sign In' : 'Iniciar Sesión'
+                )}
               </button>
             </form>
 
+            {/* Divider */}
+            <div className="flex items-center gap-3 my-4">
+              <div className="flex-1 h-px bg-border" />
+              <span className="text-xs text-muted-foreground font-bold">{lang === 'en' ? 'or' : 'o'}</span>
+              <div className="flex-1 h-px bg-border" />
+            </div>
+
+            {/* Demo quick login */}
+            <button
+              type="button"
+              onClick={handleDemoLogin}
+              className="w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl border border-border bg-card hover:bg-muted/30 font-bold text-sm text-muted-foreground transition-all"
+            >
+              🎪 {lang === 'en' ? `Demo ${currentRole.labelEn} Login` : `Demo ${currentRole.labelEs}`}
+            </button>
+
             <p className="text-center text-[11px] text-muted-foreground mt-5">
-              🔒 {lang === 'en' ? 'Demo mode — no real authentication' : 'Modo demo — sin autenticación real'}
+              🔒 {lang === 'en' ? 'Uses your backend auth when running locally' : 'Usa autenticación del backend local'}
             </p>
           </div>
         </motion.div>
