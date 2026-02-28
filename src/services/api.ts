@@ -1,9 +1,15 @@
 import { API_BASE_URL } from '@/config/api';
+import { authApi } from '@/services/auth';
 import type { CartItem } from '@/data/menu';
 
 async function request<T>(endpoint: string, options?: RequestInit): Promise<T> {
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+    ...authApi.getAuthHeaders(),
+  };
+
   const res = await fetch(`${API_BASE_URL}${endpoint}`, {
-    headers: { 'Content-Type': 'application/json' },
+    headers,
     ...options,
   });
   if (!res.ok) {
@@ -13,7 +19,7 @@ async function request<T>(endpoint: string, options?: RequestInit): Promise<T> {
   return res.json();
 }
 
-// ─── Orders ───────────────────────────────────────────────────────────
+// ─── Orders (/api/orders) ─────────────────────────────────────────────
 export interface Order {
   _id: string;
   items: CartItem[];
@@ -38,13 +44,13 @@ export const ordersApi = {
   list: () => request<Order[]>('/orders'),
 
   updateStatus: (id: string, status: Order['status']) =>
-    request<Order>(`/orders/${id}/status`, {
+    request<Order>(`/orders/${id}`, {
       method: 'PATCH',
       body: JSON.stringify({ status }),
     }),
 };
 
-// ─── Menu (if you want to serve menu from DB) ────────────────────────
+// ─── Menu (/api/menu) ────────────────────────────────────────────────
 export const menuApi = {
   list: () => request<any[]>('/menu'),
   create: (item: any) =>

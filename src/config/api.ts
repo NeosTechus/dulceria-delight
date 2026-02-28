@@ -1,10 +1,17 @@
 /**
- * API Configuration
+ * API Configuration for Vercel Serverless Functions
  * 
- * Set these environment variables when running locally:
- * - VITE_API_BASE_URL: Your backend server URL (default: http://localhost:5000/api)
- * - VITE_STRIPE_PUBLISHABLE_KEY: Your Stripe publishable key (starts with pk_)
+ * Vercel serverless functions live at /api/* on the same origin.
+ * No VITE_API_BASE_URL needed — all calls are relative.
+ * 
+ * Env vars (set in Vercel dashboard or .env.local):
+ * - MONGODB_URI: Your MongoDB connection string
+ * - STRIPE_SECRET_KEY: Your Stripe secret key
+ * - JWT_SECRET: Secret for signing JWT tokens
+ * 
+ * Client-side env vars (prefixed with VITE_):
+ * - VITE_STRIPE_PUBLISHABLE_KEY: Your Stripe publishable key (pk_)
  */
 
-export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api';
+export const API_BASE_URL = '/api';
 export const STRIPE_PUBLISHABLE_KEY = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || '';

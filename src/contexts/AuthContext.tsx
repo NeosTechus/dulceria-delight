@@ -23,7 +23,7 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-const isBackendAvailable = !!API_BASE_URL && API_BASE_URL !== 'http://localhost:5000/api';
+
 
 const defaultUsers: Record<UserRole, User> = {
   customer: { name: 'Maria Garcia', email: 'maria@example.com', role: 'customer' },
