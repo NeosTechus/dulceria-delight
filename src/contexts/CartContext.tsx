@@ -70,7 +70,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
       }
       return [...prev, { id, name, price, quantity: 1, category, emoji }];
     });
-    setCartOpen(true);
+    // Don't auto-open cart on every add
   }, []);
 
   const addMenuItem = useCallback((item: MenuItem) => {
