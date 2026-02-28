@@ -38,6 +38,7 @@ export const menuItems: MenuItem[] = [
   { id: 's3', name: 'Fruta con Chile', description: 'Fresh fruit with chili, lime & salt', price: 5.99, category: 'snacks', emoji: '🍉' },
   { id: 's4', name: 'Nachos con Queso', description: 'Loaded nachos with cheese & jalapeños', price: 7.49, category: 'snacks', emoji: '🧀' },
   { id: 's5', name: 'Churros', description: 'Crispy cinnamon sugar churros', price: 4.99, category: 'snacks', emoji: '🍩' },
+  { id: 's6', name: 'Test Item $90', description: 'For testing delivery minimum', price: 90.00, category: 'snacks', emoji: '🧪' },
 ];
 
 export interface CandyItem {
