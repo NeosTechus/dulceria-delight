@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useOrderNotification } from '@/hooks/useOrderNotification';
 import { Link, Navigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '@/contexts/AuthContext';
@@ -34,6 +35,9 @@ const ChefDashboard = () => {
   const pendingCount = orders.filter((o) => o.status === 'pending').length;
   const preparingCount = orders.filter((o) => ['accepted', 'preparing'].includes(o.status)).length;
   const readyCount = orders.filter((o) => o.status === 'ready').length;
+
+  // Play notification sound when new pending orders arrive
+  useOrderNotification(pendingCount);
 
   const timeAgo = (date: Date) => {
     const mins = Math.floor((Date.now() - date.getTime()) / 60000);
