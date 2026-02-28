@@ -23,11 +23,12 @@ declare global {
 
 const LoginPage = () => {
   const [mode, setMode] = useState<'signin' | 'signup'>('signin');
+  const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [localError, setLocalError] = useState('');
-  const { login, staffLogin, googleLogin, demoLogin, loading, error } = useAuth();
+  const { login, register, staffLogin, googleLogin, demoLogin, loading, error } = useAuth();
   const { lang } = useLanguage();
   const navigate = useNavigate();
   const googleBtnRef = useRef<HTMLDivElement>(null);
@@ -72,6 +73,10 @@ const LoginPage = () => {
     e.preventDefault();
     setLocalError('');
 
+    if (mode === 'signup' && !name.trim()) {
+      setLocalError(lang === 'en' ? 'Name is required' : 'El nombre es requerido');
+      return;
+    }
     if (!email) {
       setLocalError(lang === 'en' ? 'Email is required' : 'El correo es requerido');
       return;
@@ -82,7 +87,6 @@ const LoginPage = () => {
     }
 
     if (mode === 'signin') {
-      // Check staff credentials first
       const isAdmin = staffLogin(email, password, 'admin');
       if (isAdmin) { navigate('/admin'); return; }
       const isChef = staffLogin(email, password, 'chef');
@@ -95,9 +99,12 @@ const LoginPage = () => {
         setLocalError(lang === 'en' ? 'Invalid email or password' : 'Correo o contraseña inválidos');
       }
     } else {
-      // Sign up — placeholder, just demo login for now
-      demoLogin('customer');
-      navigate('/');
+      try {
+        await register(name.trim(), email, password);
+        navigate('/');
+      } catch {
+        setLocalError(lang === 'en' ? 'Registration failed. Try again.' : 'Error al registrarse. Intenta de nuevo.');
+      }
     }
   };
 
@@ -162,6 +169,23 @@ const LoginPage = () => {
 
             {/* Form */}
             <form onSubmit={handleSubmit} className="space-y-5">
+              {mode === 'signup' && (
+                <div>
+                  <label className="block text-sm font-bold text-foreground mb-2">
+                    {lang === 'en' ? 'Name' : 'Nombre'}
+                  </label>
+                  <div className="relative">
+                    <UserPlus size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                    <input
+                      type="text"
+                      placeholder={lang === 'en' ? 'Your name' : 'Tu nombre'}
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      className="w-full pl-10 pr-4 py-3 rounded-xl border border-border bg-muted/30 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"
+                    />
+                  </div>
+                </div>
+              )}
               <div>
                 <label className="block text-sm font-bold text-foreground mb-2">
                   {lang === 'en' ? 'Email' : 'Correo'}
