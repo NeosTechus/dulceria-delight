@@ -1,6 +1,7 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, Navigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import { useAuth } from '@/contexts/AuthContext';
 import {
   ShoppingCart, Menu as MenuIcon, BarChart3, Users, ArrowLeft,
   Package, Clock, CheckCircle, XCircle, DollarSign, TrendingUp,
@@ -35,8 +36,13 @@ const statusColors: Record<string, string> = {
 };
 
 const AdminDashboard = () => {
+  const { user, isAuthenticated } = useAuth();
   const [activeTab, setActiveTab] = useState<Tab>('orders');
   const [searchQuery, setSearchQuery] = useState('');
+
+  if (!isAuthenticated || user?.role !== 'admin') {
+    return <Navigate to="/login" replace />;
+  }
 
   const tabs: { key: Tab; label: string; icon: typeof ShoppingCart }[] = [
     { key: 'orders', label: 'Orders', icon: ShoppingCart },
