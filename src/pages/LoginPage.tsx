@@ -6,7 +6,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { GOOGLE_CLIENT_ID } from '@/config/api';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
-import { Mail, Lock, AlertCircle, Loader2 } from 'lucide-react';
+import { Mail, Lock, AlertCircle, Loader2, LogIn, UserPlus, Eye, EyeOff } from 'lucide-react';
 
 declare global {
   interface Window {
@@ -22,8 +22,10 @@ declare global {
 }
 
 const LoginPage = () => {
+  const [mode, setMode] = useState<'signin' | 'signup'>('signin');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [localError, setLocalError] = useState('');
   const { login, staffLogin, googleLogin, demoLogin, loading, error } = useAuth();
   const { lang } = useLanguage();
@@ -66,7 +68,7 @@ const LoginPage = () => {
     }
   }, [handleGoogleResponse]);
 
-  const handleLogin = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLocalError('');
 
@@ -79,19 +81,23 @@ const LoginPage = () => {
       return;
     }
 
-    // Check staff credentials first (admin, then chef)
-    const isAdmin = staffLogin(email, password, 'admin');
-    if (isAdmin) { navigate('/admin'); return; }
+    if (mode === 'signin') {
+      // Check staff credentials first
+      const isAdmin = staffLogin(email, password, 'admin');
+      if (isAdmin) { navigate('/admin'); return; }
+      const isChef = staffLogin(email, password, 'chef');
+      if (isChef) { navigate('/chef'); return; }
 
-    const isChef = staffLogin(email, password, 'chef');
-    if (isChef) { navigate('/chef'); return; }
-
-    // Otherwise try customer login
-    try {
-      await login(email, password);
+      try {
+        await login(email, password);
+        navigate('/');
+      } catch {
+        setLocalError(lang === 'en' ? 'Invalid email or password' : 'Correo o contraseña inválidos');
+      }
+    } else {
+      // Sign up — placeholder, just demo login for now
+      demoLogin('customer');
       navigate('/');
-    } catch {
-      setLocalError(lang === 'en' ? 'Invalid email or password' : 'Correo o contraseña inválidos');
     }
   };
 
@@ -102,22 +108,51 @@ const LoginPage = () => {
       <Navbar cartCount={0} onCartClick={() => {}} />
       <div className="pt-[140px] pb-20 px-4 flex justify-center items-start min-h-[80vh]">
         <motion.div
-          className="w-full max-w-sm"
+          className="w-full max-w-md"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4 }}
         >
-          <div className="text-center mb-8">
-            <h1 className="text-3xl mb-1">🪅</h1>
-            <h2 className="text-xl font-bold text-foreground">
-              {lang === 'en' ? 'Welcome back' : 'Bienvenido'}
-            </h2>
-            <p className="text-sm text-muted-foreground mt-1">
-              {lang === 'en' ? 'Sign in to your account' : 'Inicia sesión en tu cuenta'}
-            </p>
-          </div>
+          <div className="bg-card rounded-2xl border border-border shadow-elevated p-8">
+            {/* Header */}
+            <div className="text-center mb-6">
+              <h2 className="text-2xl font-fredoka text-foreground">
+                {lang === 'en' ? 'Welcome' : 'Bienvenido'}
+              </h2>
+              <p className="text-sm text-muted-foreground mt-1">
+                {lang === 'en' ? 'Sign in to track orders and enjoy faster checkout' : 'Inicia sesión para rastrear pedidos y pagar más rápido'}
+              </p>
+            </div>
 
-          <div className="bg-card rounded-2xl border border-border shadow-elevated p-6">
+            {/* Sign In / Sign Up Toggle */}
+            <div className="flex p-1 bg-muted/50 rounded-xl mb-6">
+              <button
+                type="button"
+                onClick={() => { setMode('signin'); setLocalError(''); }}
+                className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-bold transition-all ${
+                  mode === 'signin'
+                    ? 'bg-card text-foreground shadow-sm'
+                    : 'text-muted-foreground hover:text-foreground'
+                }`}
+              >
+                <LogIn size={16} />
+                {lang === 'en' ? 'Sign In' : 'Iniciar Sesión'}
+              </button>
+              <button
+                type="button"
+                onClick={() => { setMode('signup'); setLocalError(''); }}
+                className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-bold transition-all ${
+                  mode === 'signup'
+                    ? 'bg-card text-foreground shadow-sm'
+                    : 'text-muted-foreground hover:text-foreground'
+                }`}
+              >
+                <UserPlus size={16} />
+                {lang === 'en' ? 'Sign Up' : 'Registrarse'}
+              </button>
+            </div>
+
+            {/* Error */}
             {displayError && (
               <div className="flex items-center gap-2 p-3 mb-4 rounded-lg bg-destructive/10 text-destructive text-sm">
                 <AlertCircle size={16} />
@@ -125,14 +160,82 @@ const LoginPage = () => {
               </div>
             )}
 
+            {/* Form */}
+            <form onSubmit={handleSubmit} className="space-y-5">
+              <div>
+                <label className="block text-sm font-bold text-foreground mb-2">
+                  {lang === 'en' ? 'Email' : 'Correo'}
+                </label>
+                <div className="relative">
+                  <Mail size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                  <input
+                    type="email"
+                    placeholder="you@example.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="w-full pl-10 pr-4 py-3 rounded-xl border border-border bg-muted/30 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-bold text-foreground mb-2">
+                  {lang === 'en' ? 'Password' : 'Contraseña'}
+                </label>
+                <div className="relative">
+                  <Lock size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    placeholder="••••••••"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="w-full pl-10 pr-12 py-3 rounded-xl border border-border bg-muted/30 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                  </button>
+                </div>
+              </div>
+
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full bg-fiesta-orange text-white py-3 rounded-xl font-bold text-sm hover:bg-fiesta-orange/90 transition-all disabled:opacity-50 flex items-center justify-center gap-2 shadow-fiesta-orange"
+              >
+                {loading ? (
+                  <>
+                    <Loader2 size={16} className="animate-spin" />
+                    {lang === 'en' ? 'Please wait...' : 'Espera...'}
+                  </>
+                ) : (
+                  mode === 'signin'
+                    ? (lang === 'en' ? 'Sign In' : 'Iniciar Sesión')
+                    : (lang === 'en' ? 'Create Account' : 'Crear Cuenta')
+                )}
+              </button>
+            </form>
+
+            {/* Divider */}
+            <div className="flex items-center gap-3 my-6">
+              <div className="flex-1 h-px bg-border" />
+              <span className="text-xs text-muted-foreground font-bold uppercase tracking-wider">
+                {lang === 'en' ? 'or continue with' : 'o continuar con'}
+              </span>
+              <div className="flex-1 h-px bg-border" />
+            </div>
+
             {/* Google Sign-In */}
             {GOOGLE_CLIENT_ID ? (
-              <div ref={googleBtnRef} className="w-full mb-4" />
+              <div ref={googleBtnRef} className="w-full" />
             ) : (
               <button
                 type="button"
                 onClick={() => { demoLogin('customer'); navigate('/'); }}
-                className="w-full flex items-center justify-center gap-3 py-2.5 px-4 rounded-xl border border-border bg-card hover:bg-muted/30 font-bold text-sm transition-all mb-4"
+                className="w-full flex items-center justify-center gap-3 py-3 px-4 rounded-xl border border-border bg-card hover:bg-muted/30 font-bold text-sm transition-all"
               >
                 <svg width="18" height="18" viewBox="0 0 48 48">
                   <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
@@ -143,53 +246,14 @@ const LoginPage = () => {
                 {lang === 'en' ? 'Sign in with Google' : 'Iniciar con Google'}
               </button>
             )}
-
-            <div className="flex items-center gap-3 mb-4">
-              <div className="flex-1 h-px bg-border" />
-              <span className="text-xs text-muted-foreground font-bold">{lang === 'en' ? 'or' : 'o'}</span>
-              <div className="flex-1 h-px bg-border" />
-            </div>
-
-            {/* Email/Password form */}
-            <form onSubmit={handleLogin} className="space-y-3">
-              <div className="relative">
-                <Mail size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-                <input
-                  type="email"
-                  placeholder={lang === 'en' ? 'Email address' : 'Correo electrónico'}
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"
-                />
-              </div>
-              <div className="relative">
-                <Lock size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-                <input
-                  type="password"
-                  placeholder={lang === 'en' ? 'Password' : 'Contraseña'}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"
-                />
-              </div>
-
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full bg-gradient-fiesta text-primary-foreground py-2.5 rounded-xl font-bold text-sm shadow-fiesta hover:shadow-fiesta-lg transition-all disabled:opacity-50 flex items-center justify-center gap-2"
-              >
-                {loading ? (
-                  <>
-                    <Loader2 size={16} className="animate-spin" />
-                    {lang === 'en' ? 'Signing in...' : 'Iniciando...'}
-                  </>
-                ) : (
-                  lang === 'en' ? 'Sign In' : 'Iniciar Sesión'
-                )}
-              </button>
-            </form>
-
           </div>
+
+          {/* Guest checkout note */}
+          <p className="text-center text-sm text-muted-foreground mt-5">
+            {lang === 'en'
+              ? 'You can also checkout as a guest and create an account later'
+              : 'También puedes comprar como invitado y crear una cuenta después'}
+          </p>
         </motion.div>
       </div>
       <Footer />
