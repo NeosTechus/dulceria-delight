@@ -32,7 +32,7 @@ const LoginPage = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [localError, setLocalError] = useState('');
-  const { login, googleLogin, demoLogin, loading, error } = useAuth();
+  const { login, staffLogin, googleLogin, demoLogin, loading, error } = useAuth();
   const { lang } = useLanguage();
   const navigate = useNavigate();
   const googleBtnRef = useRef<HTMLDivElement>(null);
@@ -97,7 +97,21 @@ const LoginPage = () => {
       setLocalError(lang === 'en' ? 'Email is required' : 'El correo es requerido');
       return;
     }
+    if (!password) {
+      setLocalError(lang === 'en' ? 'Password is required' : 'La contraseña es requerida');
+      return;
+    }
 
+    // Staff login (admin/chef) validates against env credentials
+    if (selectedRole === 'admin' || selectedRole === 'chef') {
+      const success = staffLogin(email, password, selectedRole);
+      if (success) {
+        navigate(selectedRole === 'admin' ? '/admin' : '/chef');
+      }
+      return;
+    }
+
+    // Customer login
     try {
       await login(email, password);
       navigate('/');

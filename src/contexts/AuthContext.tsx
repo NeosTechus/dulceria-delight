@@ -13,6 +13,7 @@ interface User {
 interface AuthContextType {
   user: User | null;
   login: (email: string, password: string) => Promise<void>;
+  staffLogin: (email: string, password: string, role: 'admin' | 'chef') => boolean;
   googleLogin: (idToken: string) => Promise<void>;
   demoLogin: (role: UserRole) => void;
   logout: () => void;
@@ -27,6 +28,21 @@ const defaultUsers: Record<UserRole, User> = {
   customer: { name: 'Maria Garcia', email: 'maria@example.com', role: 'customer' },
   admin: { name: 'Carlos Medina', email: 'admin@dulceriamedina.com', role: 'admin' },
   chef: { name: 'Chef Rosa', email: 'rosa@dulceriamedina.com', role: 'chef' },
+};
+
+// Staff credentials from environment variables
+// Set these in your .env file:
+// VITE_ADMIN_EMAIL, VITE_ADMIN_PASSWORD
+// VITE_CHEF_EMAIL, VITE_CHEF_PASSWORD
+const staffCredentials = {
+  admin: {
+    email: import.meta.env.VITE_ADMIN_EMAIL || 'admin@dulceriamedina.com',
+    password: import.meta.env.VITE_ADMIN_PASSWORD || 'admin123',
+  },
+  chef: {
+    email: import.meta.env.VITE_CHEF_EMAIL || 'chef@dulceriamedina.com',
+    password: import.meta.env.VITE_CHEF_PASSWORD || 'chef123',
+  },
 };
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
@@ -51,6 +67,22 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const staffLogin = (email: string, password: string, role: 'admin' | 'chef'): boolean => {
+    const creds = staffCredentials[role];
+    if (email === creds.email && password === creds.password) {
+      const staffUser: User = {
+        name: role === 'admin' ? 'Admin' : 'Chef',
+        email,
+        role,
+      };
+      setUser(staffUser);
+      setError(null);
+      return true;
+    }
+    setError('Invalid email or password');
+    return false;
   };
 
   const googleLogin = async (idToken: string) => {
@@ -79,7 +111,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, googleLogin, demoLogin, logout, isAuthenticated: !!user, loading, error }}>
+    <AuthContext.Provider value={{ user, login, staffLogin, googleLogin, demoLogin, logout, isAuthenticated: !!user, loading, error }}>
       {children}
     </AuthContext.Provider>
   );

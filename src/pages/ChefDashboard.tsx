@@ -1,6 +1,7 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, Navigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useAuth } from '@/contexts/AuthContext';
 import {
   ArrowLeft, Clock, CheckCircle, ChefHat, Eye, Flame,
   ShieldCheck, Truck, ShoppingBag, History
@@ -64,9 +65,14 @@ const statusConfig: Record<string, { bg: string; icon: typeof Clock; label: stri
 };
 
 const ChefDashboard = () => {
+  const { user, isAuthenticated } = useAuth();
   const [activeTab, setActiveTab] = useState<Tab>('queue');
   const [orders, setOrders] = useState<Order[]>(mockQueue);
   const [expandedOrder, setExpandedOrder] = useState<string | null>(null);
+
+  if (!isAuthenticated || user?.role !== 'chef') {
+    return <Navigate to="/login" replace />;
+  }
 
   const advanceStatus = (orderId: string) => {
     setOrders((prev) =>
