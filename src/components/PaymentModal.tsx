@@ -40,13 +40,39 @@ const PaymentModal = ({ open, onClose, items, onComplete }: PaymentModalProps) =
   const grandTotal = total + tax;
   const { t } = useLanguage();
 
-  const timeSlots = [
-    '10:00 AM', '10:30 AM', '11:00 AM', '11:30 AM',
-    '12:00 PM', '12:30 PM', '1:00 PM', '1:30 PM',
-    '2:00 PM', '2:30 PM', '3:00 PM', '3:30 PM',
-    '4:00 PM', '4:30 PM', '5:00 PM', '5:30 PM',
-    '6:00 PM', '6:30 PM', '7:00 PM', '7:30 PM',
-  ];
+  // Estimate prep time based on items
+  const prepMinutes = items.reduce((total, item) => {
+    const perItem: Record<string, number> = { tortas: 12, snacks: 8, jugos: 5, candy: 2 };
+    return total + (perItem[item.category] || 5) * item.quantity;
+  }, 0);
+  const prepTime = Math.max(15, Math.min(prepMinutes, 90)); // clamp 15–90 min
+
+  // Generate pickup slots starting from now + prep time, in 15-min increments
+  const generateTimeSlots = () => {
+    const isToday = pickupDate && pickupDate.toDateString() === new Date().toDateString();
+    const now = new Date();
+    const earliest = new Date(now.getTime() + prepTime * 60000);
+    // Round up to next 15-min mark
+    earliest.setMinutes(Math.ceil(earliest.getMinutes() / 15) * 15, 0, 0);
+
+    const storeOpen = 10 * 60; // 10:00 AM in minutes
+    const storeClose = 20 * 60; // 8:00 PM in minutes
+    const startMin = isToday
+      ? Math.max(earliest.getHours() * 60 + earliest.getMinutes(), storeOpen)
+      : storeOpen;
+
+    const slots: string[] = [];
+    for (let m = startMin; m < storeClose; m += 15) {
+      const h = Math.floor(m / 60);
+      const min = m % 60;
+      const ampm = h >= 12 ? 'PM' : 'AM';
+      const h12 = h > 12 ? h - 12 : h === 0 ? 12 : h;
+      slots.push(`${h12}:${min.toString().padStart(2, '0')} ${ampm}`);
+    }
+    return slots;
+  };
+
+  const timeSlots = pickupDate ? generateTimeSlots() : [];
 
   const isStripeConfigured = !!STRIPE_PUBLISHABLE_KEY && !!stripePromise;
 
@@ -204,33 +230,40 @@ const PaymentModal = ({ open, onClose, items, onComplete }: PaymentModalProps) =
                    </div>
 
                    {orderType === 'pickup' && (
-                     <div className="grid grid-cols-2 gap-3">
-                       <div>
-                         <label className="block text-sm font-bold text-foreground mb-1">📅 Pickup Date</label>
-                         <Popover>
-                           <PopoverTrigger asChild>
-                             <button
-                               type="button"
-                               className={cn(
-                                 "w-full px-4 py-3 rounded-lg border border-input bg-background text-left text-sm flex items-center gap-2 focus:outline-none focus:ring-2 focus:ring-ring",
-                                 !pickupDate && "text-muted-foreground"
-                               )}
-                             >
-                               <CalendarIcon size={16} />
-                               {pickupDate ? format(pickupDate, 'MMM d, yyyy') : 'Select date'}
-                             </button>
-                           </PopoverTrigger>
-                           <PopoverContent className="w-auto p-0 z-[70]" align="start">
-                             <Calendar
-                               mode="single"
-                               selected={pickupDate}
-                               onSelect={setPickupDate}
-                               disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
-                               className={cn("p-3 pointer-events-auto")}
-                             />
-                           </PopoverContent>
-                         </Popover>
+                     <>
+                       <div className="flex items-center gap-2 p-3 rounded-lg bg-primary/10 text-sm">
+                         <Clock size={16} className="text-primary shrink-0" />
+                         <span className="text-foreground">
+                           Estimated prep time: <strong>{prepTime} min</strong> — pick a slot after that!
+                         </span>
                        </div>
+                       <div className="grid grid-cols-2 gap-3">
+                         <div>
+                           <label className="block text-sm font-bold text-foreground mb-1">📅 Pickup Date</label>
+                           <Popover>
+                             <PopoverTrigger asChild>
+                               <button
+                                 type="button"
+                                 className={cn(
+                                   "w-full px-4 py-3 rounded-lg border border-input bg-background text-left text-sm flex items-center gap-2 focus:outline-none focus:ring-2 focus:ring-ring",
+                                   !pickupDate && "text-muted-foreground"
+                                 )}
+                               >
+                                 <CalendarIcon size={16} />
+                                 {pickupDate ? format(pickupDate, 'MMM d, yyyy') : 'Select date'}
+                               </button>
+                             </PopoverTrigger>
+                             <PopoverContent className="w-auto p-0 z-[70]" align="start">
+                               <Calendar
+                                 mode="single"
+                                 selected={pickupDate}
+                                 onSelect={(d) => { setPickupDate(d); setPickupTime(''); }}
+                                 disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
+                                 className={cn("p-3 pointer-events-auto")}
+                               />
+                             </PopoverContent>
+                           </Popover>
+                         </div>
                        <div>
                          <label className="block text-sm font-bold text-foreground mb-1">🕐 Pickup Time</label>
                          <select
@@ -245,7 +278,8 @@ const PaymentModal = ({ open, onClose, items, onComplete }: PaymentModalProps) =
                            ))}
                          </select>
                        </div>
-                     </div>
+                      </div>
+                     </>
                    )}
 
                    <button
