@@ -1,6 +1,8 @@
-import { X, Plus, Minus, Trash2 } from 'lucide-react';
+import { X, Plus, Minus, Trash2, MapPin, Store, Truck, AlertCircle } from 'lucide-react';
 import { type CartItem } from '@/data/menu';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useCart, MIN_DELIVERY_TOTAL, MAX_DELIVERY_MILES, haversineDistance, STORE_LAT, STORE_LNG } from '@/contexts/CartContext';
+import { useState } from 'react';
 
 interface CartDrawerProps {
   open: boolean;
@@ -14,6 +16,41 @@ interface CartDrawerProps {
 const CartDrawer = ({ open, onClose, items, onUpdateQty, onRemove, onCheckout }: CartDrawerProps) => {
   const total = items.reduce((sum, i) => sum + i.price * i.quantity, 0);
   const { t } = useLanguage();
+  const { orderType, setOrderType, deliveryInfo, setDeliveryInfo, canDeliver, deliveryError } = useCart();
+  const [checkingDistance, setCheckingDistance] = useState(false);
+
+  const handleAddressChange = (address: string) => {
+    setDeliveryInfo({ address, distance: null });
+  };
+
+  const handleCheckDistance = async () => {
+    if (!deliveryInfo.address.trim()) return;
+    setCheckingDistance(true);
+
+    try {
+      // Use browser Geocoding if available, otherwise estimate by zip
+      const encoded = encodeURIComponent(deliveryInfo.address + ', USA');
+      const res = await fetch(`https://nominatim.openstreetmap.org/search?q=${encoded}&format=json&limit=1`);
+      const data = await res.json();
+      if (data.length > 0) {
+        const lat = parseFloat(data[0].lat);
+        const lng = parseFloat(data[0].lon);
+        const dist = haversineDistance(STORE_LAT, STORE_LNG, lat, lng);
+        setDeliveryInfo({ distance: Math.round(dist * 10) / 10 });
+      } else {
+        setDeliveryInfo({ distance: 999 }); // unknown — will fail validation
+      }
+    } catch {
+      setDeliveryInfo({ distance: null });
+    } finally {
+      setCheckingDistance(false);
+    }
+  };
+
+  const categoryLabel = (cat: string) => {
+    const labels: Record<string, string> = { jugos: '🍊', tortas: '🥪', snacks: '🌽', candy: '🍬' };
+    return labels[cat] || '';
+  };
 
   return (
     <>
@@ -40,28 +77,102 @@ const CartDrawer = ({ open, onClose, items, onUpdateQty, onRemove, onCheckout }:
                 <p className="text-sm text-muted-foreground mt-1">{t('cart.addItems')}</p>
               </div>
             ) : (
-              <div className="space-y-4">
-                {items.map((item) => (
-                  <div key={item.id} className="flex items-center gap-3 bg-muted/50 rounded-lg p-3">
-                    <div className="flex-1">
-                      <p className="font-bold text-foreground">{item.name}</p>
-                      <p className="text-sm text-secondary font-semibold">${(item.price * item.quantity).toFixed(2)}</p>
+              <>
+                <div className="space-y-3 mb-6">
+                  {items.map((item) => (
+                    <div key={item.id} className="flex items-center gap-3 bg-muted/50 rounded-lg p-3">
+                      <span className="text-xl">{categoryLabel(item.category)}</span>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-bold text-foreground text-sm truncate">{item.name}</p>
+                        <p className="text-sm text-secondary font-semibold">${(item.price * item.quantity).toFixed(2)}</p>
+                      </div>
+                      <div className="flex items-center gap-1.5">
+                        <button onClick={() => onUpdateQty(item.id, -1)} className="w-7 h-7 rounded-full bg-card border border-border flex items-center justify-center text-foreground hover:bg-muted">
+                          <Minus size={12} />
+                        </button>
+                        <span className="font-bold text-foreground w-5 text-center text-sm">{item.quantity}</span>
+                        <button onClick={() => onUpdateQty(item.id, 1)} className="w-7 h-7 rounded-full bg-card border border-border flex items-center justify-center text-foreground hover:bg-muted">
+                          <Plus size={12} />
+                        </button>
+                        <button onClick={() => onRemove(item.id)} className="w-7 h-7 rounded-full flex items-center justify-center text-destructive hover:bg-destructive/10">
+                          <Trash2 size={12} />
+                        </button>
+                      </div>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <button onClick={() => onUpdateQty(item.id, -1)} className="w-8 h-8 rounded-full bg-card border border-border flex items-center justify-center text-foreground hover:bg-muted">
-                        <Minus size={14} />
-                      </button>
-                      <span className="font-bold text-foreground w-6 text-center">{item.quantity}</span>
-                      <button onClick={() => onUpdateQty(item.id, 1)} className="w-8 h-8 rounded-full bg-card border border-border flex items-center justify-center text-foreground hover:bg-muted">
-                        <Plus size={14} />
-                      </button>
-                      <button onClick={() => onRemove(item.id)} className="w-8 h-8 rounded-full flex items-center justify-center text-destructive hover:bg-destructive/10">
-                        <Trash2 size={14} />
-                      </button>
-                    </div>
+                  ))}
+                </div>
+
+                {/* Pickup / Delivery selector */}
+                <div className="border border-border rounded-xl p-4 mb-4">
+                  <p className="text-sm font-bold text-foreground mb-3">Order Type</p>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => setOrderType('pickup')}
+                      className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl font-bold text-sm transition-all ${
+                        orderType === 'pickup'
+                          ? 'bg-gradient-fiesta text-primary-foreground shadow-fiesta'
+                          : 'bg-muted/50 text-muted-foreground border border-border hover:border-primary/40'
+                      }`}
+                    >
+                      <Store size={16} /> Pickup
+                    </button>
+                    <button
+                      onClick={() => setOrderType('delivery')}
+                      className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl font-bold text-sm transition-all ${
+                        orderType === 'delivery'
+                          ? 'bg-gradient-fiesta text-primary-foreground shadow-fiesta'
+                          : 'bg-muted/50 text-muted-foreground border border-border hover:border-primary/40'
+                      }`}
+                    >
+                      <Truck size={16} /> Delivery
+                    </button>
                   </div>
-                ))}
-              </div>
+
+                  {orderType === 'pickup' && (
+                    <div className="mt-3 flex items-start gap-2 text-sm text-muted-foreground">
+                      <MapPin size={14} className="mt-0.5 shrink-0 text-primary" />
+                      <span>3515 Cherokee St, St. Louis</span>
+                    </div>
+                  )}
+
+                  {orderType === 'delivery' && (
+                    <div className="mt-3 space-y-3">
+                      <div>
+                        <input
+                          type="text"
+                          placeholder="Enter your full address..."
+                          value={deliveryInfo.address}
+                          onChange={(e) => handleAddressChange(e.target.value)}
+                          className="w-full px-3 py-2.5 rounded-lg border border-input bg-background text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                        />
+                      </div>
+                      <button
+                        onClick={handleCheckDistance}
+                        disabled={!deliveryInfo.address.trim() || checkingDistance}
+                        className="w-full py-2 rounded-lg bg-muted text-foreground font-bold text-xs hover:bg-muted/80 transition-colors disabled:opacity-50"
+                      >
+                        {checkingDistance ? 'Checking...' : deliveryInfo.distance !== null ? `${deliveryInfo.distance} miles away — Check again` : 'Check delivery availability'}
+                      </button>
+
+                      <div className="text-xs text-muted-foreground space-y-1">
+                        <p>🚚 Min. order: <span className="font-bold text-foreground">${MIN_DELIVERY_TOTAL}</span></p>
+                        <p>📍 Max distance: <span className="font-bold text-foreground">{MAX_DELIVERY_MILES} miles</span> from store</p>
+                      </div>
+
+                      {deliveryInfo.distance !== null && deliveryInfo.distance <= MAX_DELIVERY_MILES && (
+                        <p className="text-xs text-accent font-bold">✅ You're within delivery range!</p>
+                      )}
+
+                      {deliveryError && (
+                        <div className="flex items-start gap-2 p-2.5 rounded-lg bg-destructive/10 text-destructive text-xs">
+                          <AlertCircle size={14} className="mt-0.5 shrink-0" />
+                          <span>{deliveryError}</span>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </>
             )}
           </div>
 
@@ -73,7 +184,8 @@ const CartDrawer = ({ open, onClose, items, onUpdateQty, onRemove, onCheckout }:
               </div>
               <button
                 onClick={onCheckout}
-                className="w-full bg-gradient-fiesta text-primary-foreground font-bold py-4 rounded-xl text-lg shadow-fiesta hover:scale-[1.02] transition-transform"
+                disabled={!canDeliver}
+                className="w-full bg-gradient-fiesta text-primary-foreground font-bold py-4 rounded-xl text-lg shadow-fiesta hover:scale-[1.02] transition-transform disabled:opacity-50 disabled:hover:scale-100"
               >
                 {t('cart.checkout')}
               </button>

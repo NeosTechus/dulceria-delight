@@ -1,40 +1,14 @@
-import { useState, useCallback } from 'react';
+import { useState } from 'react';
 import Navbar from '@/components/Navbar';
 import RestaurantMenu from '@/components/RestaurantMenu';
 import CartDrawer from '@/components/CartDrawer';
 import PaymentModal from '@/components/PaymentModal';
 import Footer from '@/components/Footer';
-import { type MenuItem, type CartItem } from '@/data/menu';
+import { useCart } from '@/contexts/CartContext';
 
 const MenuPage = () => {
-  const [cart, setCart] = useState<CartItem[]>([]);
-  const [cartOpen, setCartOpen] = useState(false);
+  const { addMenuItem, cartCount, cartOpen, setCartOpen, cart, updateQty, removeItem, clearCart } = useCart();
   const [paymentOpen, setPaymentOpen] = useState(false);
-
-  const cartCount = cart.reduce((sum, i) => sum + i.quantity, 0);
-
-  const addToCart = useCallback((item: MenuItem) => {
-    setCart((prev) => {
-      const existing = prev.find((c) => c.id === item.id);
-      if (existing) {
-        return prev.map((c) => (c.id === item.id ? { ...c, quantity: c.quantity + 1 } : c));
-      }
-      return [...prev, { id: item.id, name: item.name, price: item.price, quantity: 1, category: item.category }];
-    });
-    setCartOpen(true);
-  }, []);
-
-  const updateQty = useCallback((id: string, delta: number) => {
-    setCart((prev) =>
-      prev
-        .map((c) => (c.id === id ? { ...c, quantity: c.quantity + delta } : c))
-        .filter((c) => c.quantity > 0)
-    );
-  }, []);
-
-  const removeItem = useCallback((id: string) => {
-    setCart((prev) => prev.filter((c) => c.id !== id));
-  }, []);
 
   const handleCheckout = () => {
     setCartOpen(false);
@@ -43,13 +17,13 @@ const MenuPage = () => {
 
   const handlePaymentComplete = () => {
     setPaymentOpen(false);
-    setCart([]);
+    clearCart();
   };
 
   return (
     <div className="min-h-screen">
       <Navbar cartCount={cartCount} onCartClick={() => setCartOpen(true)} />
-      <RestaurantMenu onAddToCart={addToCart} />
+      <RestaurantMenu onAddToCart={addMenuItem} />
       <Footer />
       <CartDrawer
         open={cartOpen}

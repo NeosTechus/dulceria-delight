@@ -1,7 +1,8 @@
 import { useState } from 'react';
-import { MapPin, Camera } from 'lucide-react';
-import { candyItems } from '@/data/menu';
+import { MapPin, Camera, Plus, ShoppingCart } from 'lucide-react';
+import { candyItems, type CandyItem } from '@/data/menu';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useCart } from '@/contexts/CartContext';
 import { motion, useInView, AnimatePresence, LayoutGroup } from 'framer-motion';
 import { useRef } from 'react';
 import store1 from '@/assets/store/store-1.jpg';
@@ -51,6 +52,7 @@ const tagColors: Record<string, string> = {
 const CandyShopSection = () => {
   const [activeTag, setActiveTag] = useState('All');
   const { t } = useLanguage();
+  const { addCandyItem } = useCart();
   const galleryRef = useRef(null);
   const galleryInView = useInView(galleryRef, { once: true, margin: '-80px' });
 
@@ -139,11 +141,19 @@ const CandyShopSection = () => {
                       </div>
                     </div>
                     <div className="p-5">
-                      <h3 className="font-fredoka text-lg text-foreground mb-1.5">{item.name}</h3>
+                      <div className="flex items-start justify-between mb-1.5">
+                        <h3 className="font-fredoka text-lg text-foreground">{item.name}</h3>
+                        <span className="font-fredoka text-lg text-secondary">${item.price.toFixed(2)}</span>
+                      </div>
                       <p className="text-sm text-muted-foreground mb-4 leading-relaxed">{item.description}</p>
-                      <span className="inline-flex items-center gap-1.5 text-sm font-bold text-accent group-hover:gap-2.5 transition-all duration-300">
-                        <MapPin size={14} /> {t('candy.viewInStore')}
-                      </span>
+                      <motion.button
+                        onClick={() => addCandyItem(item)}
+                        className="w-full bg-gradient-fiesta-alt text-accent-foreground font-bold py-2.5 rounded-xl flex items-center justify-center gap-2 hover:shadow-lg transition-shadow duration-300 text-sm"
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.97 }}
+                      >
+                        <ShoppingCart size={16} /> Add to Cart
+                      </motion.button>
                     </div>
                   </motion.div>
                 ))}
