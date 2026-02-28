@@ -107,9 +107,21 @@ const Footer = () => {
         </div>
 
         {/* Bottom Bar */}
-        <div className="py-5 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-primary-foreground/30">
+        <div className="py-5 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-primary-foreground/30">
           <p>© {new Date().getFullYear()} Dulceria Medina — All rights reserved.</p>
-          <p className="inline-flex items-center gap-1">{t('footer.madeWith')}</p>
+          <a
+            href="https://www.neostechus.com"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 text-primary-foreground/40 hover:text-fiesta-turquoise transition-colors"
+          >
+            <svg width="20" height="20" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <rect width="40" height="40" rx="8" fill="#1a3a5c" />
+              <path d="M12 28V12l8 10 8-10v16" stroke="#00bcd4" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+              <path d="M20 10l6-2" stroke="#00bcd4" strokeWidth="2" strokeLinecap="round" />
+            </svg>
+            Proud client of NeosTechs
+          </a>
         </div>
       </div>
     </footer>
