@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { LogIn, Search, Package, ArrowRight, Clock, CheckCircle, Flame, ShoppingBag, Truck } from 'lucide-react';
@@ -33,6 +33,13 @@ const OrdersPage = () => {
   const navigate = useNavigate();
   const [searchEmail, setSearchEmail] = useState('');
   const [searchedEmail, setSearchedEmail] = useState('');
+
+  // Auto-refresh every 5s to keep timestamps and status current
+  const [, setTick] = useState(0);
+  useEffect(() => {
+    const interval = setInterval(() => setTick((t) => t + 1), 5000);
+    return () => clearInterval(interval);
+  }, []);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
