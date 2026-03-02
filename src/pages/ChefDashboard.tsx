@@ -6,7 +6,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useOrders, type OrderStatus } from '@/contexts/OrderContext';
 import {
   ArrowLeft, Clock, CheckCircle, ChefHat, Eye, Flame,
-  ShieldCheck, Truck, ShoppingBag, History, XCircle, Timer
+  ShieldCheck, Truck, ShoppingBag, History, XCircle, Timer, LogOut
 } from 'lucide-react';
 
 
@@ -28,7 +28,7 @@ const statusConfig: Record<string, { bg: string; icon: typeof Clock; label: stri
 };
 
 const ChefDashboard = () => {
-  const { user, isAuthenticated } = useAuth();
+  const { user, isAuthenticated, logout } = useAuth();
   const { orders, updateOrderStatus, updatePrepTime } = useOrders();
   const [expandedOrder, setExpandedOrder] = useState<string | null>(null);
   const [collapsedSections, setCollapsedSections] = useState<Record<string, boolean>>({});
@@ -162,12 +162,20 @@ const ChefDashboard = () => {
               </div>
             </div>
           </div>
-          <Link
-            to="/admin"
-            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-primary/10 text-primary font-bold text-sm hover:bg-primary/20 transition-colors"
-          >
-            Admin View
-          </Link>
+          <div className="flex items-center gap-2">
+            <Link
+              to="/admin"
+              className="flex items-center gap-2 px-4 py-2 rounded-lg bg-primary/10 text-primary font-bold text-sm hover:bg-primary/20 transition-colors"
+            >
+              Admin View
+            </Link>
+            <button
+              onClick={logout}
+              className="flex items-center gap-2 px-4 py-2 rounded-lg bg-destructive/10 text-destructive font-bold text-sm hover:bg-destructive/20 transition-colors"
+            >
+              <LogOut size={16} /> Logout
+            </button>
+          </div>
         </div>
       </div>
 
