@@ -10,6 +10,7 @@ const Footer = () => {
     { label: 'Candy Shop', to: '/candy-shop' },
     { label: 'Ready to Eat', to: '/menu' },
     { label: 'About Us', to: '/about' },
+    { label: 'Contact', to: '/contact' },
   ];
 
   return (

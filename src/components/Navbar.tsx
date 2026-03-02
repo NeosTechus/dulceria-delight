@@ -28,6 +28,7 @@ const Navbar = ({ cartCount, onCartClick }: NavbarProps) => {
     { label: t('nav.candyShop'), to: '/candy-shop' },
     { label: t('nav.readyToEat'), to: '/menu' },
     { label: t('nav.about'), to: '/about' },
+    { label: lang === 'en' ? 'Contact' : 'Contacto', to: '/contact' },
   ];
 
   return (
