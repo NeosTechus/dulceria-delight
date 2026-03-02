@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useOrderNotification } from '@/hooks/useOrderNotification';
 import { Link, Navigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -32,6 +32,13 @@ const ChefDashboard = () => {
   const { orders, updateOrderStatus, updatePrepTime } = useOrders();
   const [expandedOrder, setExpandedOrder] = useState<string | null>(null);
   const [collapsedSections, setCollapsedSections] = useState<Record<string, boolean>>({});
+  const [now, setNow] = useState(Date.now());
+
+  // Tick every second for countdown timers
+  useEffect(() => {
+    const interval = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(interval);
+  }, []);
 
   if (!isAuthenticated || user?.role !== 'chef') {
     return <Navigate to="/login" replace />;
@@ -67,6 +74,17 @@ const ChefDashboard = () => {
     if (mins < 1) return 'Just now';
     if (mins < 60) return `${mins} min ago`;
     return `${Math.floor(mins / 60)}h ago`;
+  };
+
+  const getCountdown = (order: typeof orders[0]) => {
+    if (['pending', 'delivered'].includes(order.status)) return null;
+    const elapsed = (now - order.createdAt.getTime()) / 60000;
+    const remaining = Math.max(0, order.prepMinutes - elapsed);
+    const mins = Math.floor(remaining);
+    const secs = Math.floor((remaining - mins) * 60);
+    const isUrgent = remaining <= 5 && remaining > 0;
+    const isOverdue = remaining === 0;
+    return { mins, secs, isUrgent, isOverdue, remaining };
   };
 
   const getActionButton = (orderId: string, status: OrderStatus, orderType: 'pickup' | 'delivery') => {
@@ -241,6 +259,18 @@ const ChefDashboard = () => {
                                     <p className="text-sm text-muted-foreground">
                                       {order.customerName} · {timeAgo(order.createdAt)} · {order.items.length} items · ${order.total.toFixed(2)}
                                     </p>
+                                    {(() => {
+                                      const cd = getCountdown(order);
+                                      if (!cd) return null;
+                                      return (
+                                        <div className={`flex items-center gap-1.5 mt-1 text-xs font-bold ${
+                                          cd.isOverdue ? 'text-destructive animate-pulse' : cd.isUrgent ? 'text-yellow-500' : 'text-muted-foreground'
+                                        }`}>
+                                          <Timer size={12} />
+                                          {cd.isOverdue ? 'OVERDUE' : `${String(cd.mins).padStart(2, '0')}:${String(cd.secs).padStart(2, '0')} left`}
+                                        </div>
+                                      );
+                                    })()}
                                   </div>
                                 </div>
                                 <div className="flex items-center gap-2">
