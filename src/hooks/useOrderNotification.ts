@@ -8,9 +8,12 @@ export const useOrderNotification = (pendingCount: number) => {
   const prevCount = useRef(pendingCount);
 
   useEffect(() => {
-    // Only play when pending count increases (new order arrived)
     if (pendingCount > prevCount.current) {
-      playNotificationSound();
+      const newOrders = pendingCount - prevCount.current;
+      // Play sound for each new order with a staggered delay
+      for (let i = 0; i < newOrders; i++) {
+        setTimeout(() => playNotificationSound(), i * 600);
+      }
     }
     prevCount.current = pendingCount;
   }, [pendingCount]);
