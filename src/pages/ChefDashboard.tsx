@@ -2,11 +2,12 @@ import { useState, useEffect, useRef } from 'react';
 import { useOrderNotification } from '@/hooks/useOrderNotification';
 import { Link, Navigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
+import LogoutButton from '@/components/LogoutButton';
 import { useAuth } from '@/contexts/AuthContext';
 import { useOrders, type OrderStatus } from '@/contexts/OrderContext';
 import {
   ArrowLeft, Clock, CheckCircle, ChefHat, Eye, Flame,
-  ShieldCheck, Truck, ShoppingBag, History, XCircle, Timer, LogOut
+  ShieldCheck, Truck, ShoppingBag, History, XCircle, Timer
 } from 'lucide-react';
 
 
@@ -28,7 +29,7 @@ const statusConfig: Record<string, { bg: string; icon: typeof Clock; label: stri
 };
 
 const ChefDashboard = () => {
-  const { user, isAuthenticated, logout } = useAuth();
+  const { user, isAuthenticated } = useAuth();
   const { orders, updateOrderStatus, updatePrepTime } = useOrders();
   const [expandedOrder, setExpandedOrder] = useState<string | null>(null);
   const [collapsedSections, setCollapsedSections] = useState<Record<string, boolean>>({});
@@ -169,12 +170,7 @@ const ChefDashboard = () => {
             >
               Admin View
             </Link>
-            <button
-              onClick={logout}
-              className="flex items-center gap-2 px-4 py-2 rounded-lg bg-destructive/10 text-destructive font-bold text-sm hover:bg-destructive/20 transition-colors"
-            >
-              <LogOut size={16} /> Logout
-            </button>
+            <LogoutButton />
           </div>
         </div>
       </div>

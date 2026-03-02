@@ -1,11 +1,12 @@
 import { useState } from 'react';
 import { Link, Navigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import LogoutButton from '@/components/LogoutButton';
 import { useAuth } from '@/contexts/AuthContext';
 import {
   ShoppingCart, Menu as MenuIcon, BarChart3, Users, ArrowLeft,
   Package, Clock, CheckCircle, XCircle, DollarSign, TrendingUp,
-  Edit, Trash2, Plus, Search, ChefHat, LogOut
+  Edit, Trash2, Plus, Search, ChefHat
 } from 'lucide-react';
 import { menuItems } from '@/data/menu';
 
@@ -36,7 +37,7 @@ const statusColors: Record<string, string> = {
 };
 
 const AdminDashboard = () => {
-  const { user, isAuthenticated, logout } = useAuth();
+  const { user, isAuthenticated } = useAuth();
   const [activeTab, setActiveTab] = useState<Tab>('orders');
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -79,12 +80,7 @@ const AdminDashboard = () => {
             >
               <ChefHat size={16} /> Chef View
             </Link>
-            <button
-              onClick={logout}
-              className="flex items-center gap-2 px-4 py-2 rounded-lg bg-destructive/10 text-destructive font-bold text-sm hover:bg-destructive/20 transition-colors"
-            >
-              <LogOut size={16} /> Logout
-            </button>
+            <LogoutButton />
           </div>
         </div>
       </div>
