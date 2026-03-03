@@ -14,7 +14,7 @@ interface AuthContextType {
   user: User | null;
   login: (email: string, password: string) => Promise<void>;
   register: (name: string, email: string, password: string) => Promise<void>;
-  staffLogin: (email: string, password: string, role: 'admin' | 'chef') => boolean;
+  staffLogin: (email: string, password: string, role: 'admin' | 'chef') => Promise<boolean>;
   googleLogin: (idToken: string) => Promise<void>;
   demoLogin: (role: UserRole) => void;
   logout: () => void;
@@ -84,9 +84,21 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  const staffLogin = (email: string, password: string, role: 'admin' | 'chef'): boolean => {
+  const staffLogin = async (email: string, password: string, role: 'admin' | 'chef'): Promise<boolean> => {
     const creds = staffCredentials[role];
-    if (email === creds.email && password === creds.password) {
+    if (email !== creds.email || password !== creds.password) {
+      setError('Invalid email or password');
+      return false;
+    }
+
+    // Try API login first (gets a JWT for authenticated API calls)
+    try {
+      const { user: authUser } = await authApi.login(email, password);
+      setUser(authUser);
+      setError(null);
+      return true;
+    } catch {
+      // API login failed — fall back to local-only login (no JWT, limited API access)
       const staffUser: User = {
         name: role === 'admin' ? 'Admin' : 'Chef',
         email,
@@ -96,8 +108,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setError(null);
       return true;
     }
-    setError('Invalid email or password');
-    return false;
   };
 
   const googleLogin = async (idToken: string) => {

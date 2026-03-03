@@ -1,5 +1,3 @@
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
@@ -47,18 +45,16 @@ const App = () => (
   <QueryClientProvider client={queryClient}>
     <LanguageProvider>
       <CartProvider>
-        <OrderProvider>
-          <TooltipProvider>
-            <Toaster />
-            <Sonner />
-            <BrowserRouter>
-              <AuthProvider>
+        <TooltipProvider>
+          <BrowserRouter>
+            <AuthProvider>
+              <OrderProvider>
                 <AnimatedRoutes />
                 <OrderTracker />
-              </AuthProvider>
-            </BrowserRouter>
-          </TooltipProvider>
-        </OrderProvider>
+              </OrderProvider>
+            </AuthProvider>
+          </BrowserRouter>
+        </TooltipProvider>
       </CartProvider>
     </LanguageProvider>
   </QueryClientProvider>

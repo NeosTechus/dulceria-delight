@@ -25,10 +25,17 @@ export interface Order {
   items: CartItem[];
   total: number;
   tax: number;
-  status: 'pending' | 'preparing' | 'ready' | 'completed';
+  status: 'pending' | 'accepted' | 'preparing' | 'ready' | 'out_for_delivery' | 'delivered' | 'completed' | 'rejected';
   customerName: string;
   customerPhone: string;
+  customerEmail?: string;
+  orderType?: 'pickup' | 'delivery';
+  deliveryAddress?: string;
+  pickupDate?: string;
+  pickupTime?: string;
+  paymentStatus?: string;
   stripePaymentIntentId?: string;
+  stripeSessionId?: string;
   createdAt: string;
 }
 

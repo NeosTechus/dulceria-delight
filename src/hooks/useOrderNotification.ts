@@ -1,29 +1,47 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
+
+const SOUND_ENABLED_KEY = 'order_sound_enabled';
+
+function getSoundEnabled(): boolean {
+  try {
+    const val = localStorage.getItem(SOUND_ENABLED_KEY);
+    return val === null ? true : val === 'true';
+  } catch { return true; }
+}
 
 /**
  * Plays a notification sound when new pending orders appear.
- * Uses Web Audio API — no external files needed.
+ * Returns { soundEnabled, toggleSound } for UI controls.
  */
 export const useOrderNotification = (pendingCount: number) => {
   const prevCount = useRef(pendingCount);
+  const [soundEnabled, setSoundEnabled] = useState(getSoundEnabled);
+
+  const toggleSound = useCallback(() => {
+    setSoundEnabled((prev) => {
+      const next = !prev;
+      localStorage.setItem(SOUND_ENABLED_KEY, String(next));
+      return next;
+    });
+  }, []);
 
   useEffect(() => {
-    if (pendingCount > prevCount.current) {
+    if (pendingCount > prevCount.current && soundEnabled) {
       const newOrders = pendingCount - prevCount.current;
-      // Play sound for each new order with a staggered delay
       for (let i = 0; i < newOrders; i++) {
         setTimeout(() => playNotificationSound(), i * 600);
       }
     }
     prevCount.current = pendingCount;
-  }, [pendingCount]);
+  }, [pendingCount, soundEnabled]);
+
+  return { soundEnabled, toggleSound };
 };
 
 function playNotificationSound() {
   try {
     const ctx = new AudioContext();
 
-    // Two-tone chime: a friendly "ding-dong"
     const playTone = (freq: number, startTime: number, duration: number) => {
       const osc = ctx.createOscillator();
       const gain = ctx.createGain();
@@ -48,9 +66,8 @@ function playNotificationSound() {
     // Third accent
     playTone(1047, 0.35, 0.3);
 
-    // Clean up after sounds finish
     setTimeout(() => ctx.close(), 1500);
   } catch {
-    // AudioContext not available — silently ignore
+    // AudioContext not available
   }
 }

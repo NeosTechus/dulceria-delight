@@ -3,10 +3,12 @@ import { Link, Navigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import LogoutButton from '@/components/LogoutButton';
 import { useAuth } from '@/contexts/AuthContext';
+import { useOrders } from '@/contexts/OrderContext';
+import { useOrderNotification } from '@/hooks/useOrderNotification';
 import {
   ShoppingCart, Menu as MenuIcon, BarChart3, Users, ArrowLeft,
   Package, Clock, CheckCircle, XCircle, DollarSign, TrendingUp,
-  Edit, Trash2, Plus, Search, ChefHat
+  Edit, Trash2, Plus, Search, ChefHat, Volume2, VolumeX
 } from 'lucide-react';
 import { menuItems } from '@/data/menu';
 
@@ -38,12 +40,22 @@ const statusColors: Record<string, string> = {
 
 const AdminDashboard = () => {
   const { user, isAuthenticated } = useAuth();
+  const { orders } = useOrders();
   const [activeTab, setActiveTab] = useState<Tab>('orders');
   const [searchQuery, setSearchQuery] = useState('');
+
+  const pendingCount = orders.filter((o) => o.status === 'pending').length;
+  const { soundEnabled, toggleSound } = useOrderNotification(pendingCount);
 
   if (!isAuthenticated || user?.role !== 'admin') {
     return <Navigate to="/login" replace />;
   }
+
+  // Convert long MongoDB IDs to readable short IDs like #DM-A12F
+  const shortId = (id: string) => {
+    if (id.startsWith('ORD-')) return id;
+    return `#DM-${id.slice(-4).toUpperCase()}`;
+  };
 
   const tabs: { key: Tab; label: string; icon: typeof ShoppingCart }[] = [
     { key: 'orders', label: 'Orders', icon: ShoppingCart },
@@ -74,6 +86,18 @@ const AdminDashboard = () => {
             </div>
           </div>
           <div className="flex items-center gap-2">
+            <motion.button
+              onClick={toggleSound}
+              className={`flex items-center gap-2 px-3 py-2 rounded-lg font-bold text-sm transition-colors ${soundEnabled
+                ? 'bg-green-500/10 text-green-600 hover:bg-green-500/20'
+                : 'bg-muted text-muted-foreground hover:bg-muted/80'
+                }`}
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.97 }}
+              title={soundEnabled ? 'Sound on — click to mute' : 'Sound off — click to unmute'}
+            >
+              {soundEnabled ? <Volume2 size={16} /> : <VolumeX size={16} />}
+            </motion.button>
             <Link
               to="/chef"
               className="flex items-center gap-2 px-4 py-2 rounded-lg bg-fiesta-orange/10 text-fiesta-orange font-bold text-sm hover:bg-fiesta-orange/20 transition-colors"
@@ -111,11 +135,10 @@ const AdminDashboard = () => {
             <button
               key={tab.key}
               onClick={() => setActiveTab(tab.key)}
-              className={`flex items-center gap-2 px-5 py-2.5 rounded-full font-bold text-sm whitespace-nowrap transition-all ${
-                activeTab === tab.key
-                  ? 'bg-gradient-fiesta text-primary-foreground shadow-fiesta'
-                  : 'bg-card border border-border text-foreground/70 hover:border-primary/40'
-              }`}
+              className={`flex items-center gap-2 px-5 py-2.5 rounded-full font-bold text-sm whitespace-nowrap transition-all ${activeTab === tab.key
+                ? 'bg-gradient-fiesta text-primary-foreground shadow-fiesta'
+                : 'bg-card border border-border text-foreground/70 hover:border-primary/40'
+                }`}
             >
               <tab.icon size={16} /> {tab.label}
             </button>
@@ -161,7 +184,7 @@ const AdminDashboard = () => {
                       .filter((o) => o.customer.toLowerCase().includes(searchQuery.toLowerCase()) || o.id.toLowerCase().includes(searchQuery.toLowerCase()))
                       .map((order) => (
                         <tr key={order.id} className="border-t border-border hover:bg-muted/30 transition-colors">
-                          <td className="px-4 py-3 font-bold text-foreground">{order.id}</td>
+                          <td className="px-4 py-3 font-bold text-foreground">{shortId(order.id)}</td>
                           <td className="px-4 py-3">{order.customer}</td>
                           <td className="px-4 py-3">{order.items}</td>
                           <td className="px-4 py-3 font-bold">${order.total.toFixed(2)}</td>
@@ -302,11 +325,10 @@ const AdminDashboard = () => {
                         <td className="px-4 py-3 font-bold text-foreground">{user.name}</td>
                         <td className="px-4 py-3 text-muted-foreground">{user.email}</td>
                         <td className="px-4 py-3">
-                          <span className={`px-2 py-1 rounded-full text-xs font-bold capitalize ${
-                            user.role === 'admin' ? 'bg-fiesta-pink/10 text-fiesta-pink' :
+                          <span className={`px-2 py-1 rounded-full text-xs font-bold capitalize ${user.role === 'admin' ? 'bg-fiesta-pink/10 text-fiesta-pink' :
                             user.role === 'chef' ? 'bg-fiesta-orange/10 text-fiesta-orange' :
-                            'bg-muted text-muted-foreground'
-                          }`}>
+                              'bg-muted text-muted-foreground'
+                            }`}>
                             {user.role}
                           </span>
                         </td>
