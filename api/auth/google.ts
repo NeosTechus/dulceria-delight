@@ -1,6 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { connectToDatabase } from '../_lib/mongodb';
-import { signToken } from '../_lib/auth';
+import { connectToDatabase } from '../_lib/mongodb.js';
+import { signToken } from '../_lib/auth.js';
 import { OAuth2Client } from 'google-auth-library';
 
 const GOOGLE_CLIENT_ID = process.env.VITE_GOOGLE_CLIENT_ID || process.env.GOOGLE_CLIENT_ID;

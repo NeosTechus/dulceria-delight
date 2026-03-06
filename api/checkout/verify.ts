@@ -1,5 +1,5 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { connectToDatabase } from '../_lib/mongodb';
+import { connectToDatabase } from '../_lib/mongodb.js';
 import { ObjectId } from 'mongodb';
 import Stripe from 'stripe';
 

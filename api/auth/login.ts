@@ -1,6 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { connectToDatabase } from '../_lib/mongodb';
-import { signToken } from '../_lib/auth';
+import { connectToDatabase } from '../_lib/mongodb.js';
+import { signToken } from '../_lib/auth.js';
 import bcrypt from 'bcryptjs';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {

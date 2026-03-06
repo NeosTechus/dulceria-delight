@@ -1,5 +1,5 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { connectToDatabase } from '../_lib/mongodb';
+import { connectToDatabase } from '../_lib/mongodb.js';
 import Stripe from 'stripe';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
