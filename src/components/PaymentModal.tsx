@@ -169,10 +169,18 @@ const PaymentModal = ({ open, onClose, items, onComplete }: PaymentModalProps) =
         }),
       });
 
-      const data = await res.json();
+      const text = await res.text();
+      let data: { url?: string; message?: string };
+      try {
+        data = text ? JSON.parse(text) : {};
+      } catch {
+        const fallback = 'Payment service is temporarily unavailable. Please try again later.';
+        const msg = res.ok ? 'Invalid response from server' : (text?.trim().startsWith('<') ? fallback : (text?.slice(0, 120) || fallback));
+        throw new Error(msg);
+      }
 
       if (!res.ok) {
-        throw new Error(data.message || 'Failed to create checkout session');
+        throw new Error(data.message || text || 'Failed to create checkout session');
       }
 
       // Clear cart before redirect
