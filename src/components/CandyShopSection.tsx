@@ -100,6 +100,9 @@ const CandyShopSection = () => {
             {t('candy.title')}
           </h1>
           <p className="text-lg md:text-xl text-primary-foreground/70 font-nunito max-w-2xl mx-auto">{t('candy.desc')}</p>
+          <p className="mt-4 text-sm text-primary-foreground/80 font-nunito max-w-xl mx-auto bg-black/30 backdrop-blur-sm rounded-lg px-4 py-2">
+            Products and availability may vary in-store. Images are for reference only. Contact the store at <a href="tel:+13147718648" className="text-fiesta-orange underline font-semibold">(314) 771-8648</a> for clarification.
+          </p>
         </motion.div>
       </section>
 
