@@ -5,28 +5,44 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import store11 from '@/assets/store/store-11.jpg';
 
-// Menu item images
-import jugoNaranja from '@/assets/menu/jugo-naranja.jpg';
-import jugoVerde from '@/assets/menu/jugo-verde.jpg';
-import horchata from '@/assets/menu/horchata.jpg';
-import licuadoFresa from '@/assets/menu/licuado-fresa.jpg';
-import jamaica from '@/assets/menu/jamaica.jpg';
-import mangoChile from '@/assets/menu/mango-chile.jpg';
-import tortaJamon from '@/assets/menu/torta-jamon.jpg';
-import tortaMilanesa from '@/assets/menu/torta-milanesa.jpg';
-import tortaCubana from '@/assets/menu/torta-cubana.jpg';
-import tortaCarnitas from '@/assets/menu/torta-carnitas.jpg';
-import tortaPollo from '@/assets/menu/torta-pollo.jpg';
-import elote from '@/assets/menu/elote.jpg';
-import tostilocos from '@/assets/menu/tostilocos.jpg';
-import frutaChile from '@/assets/menu/fruta-chile.jpg';
-import nachos from '@/assets/menu/nachos.jpg';
-import churros from '@/assets/menu/churros.jpg';
+// AI-generated food photography for all kitchen items
+import mangonada from '@/assets/kitchen/mangonada.png';
+import horchata from '@/assets/kitchen/horchata.png';
+import jamaica from '@/assets/kitchen/jamaica.png';
+import jugoNaranja from '@/assets/kitchen/jugo-naranja.png';
+import licuadoFresa from '@/assets/kitchen/licuado-fresa.png';
+import mangoChile from '@/assets/kitchen/mango-chile.png';
+import papasLocas from '@/assets/kitchen/papas-locas.png';
+import chicharronPreparado from '@/assets/kitchen/chicharron-preparado.png';
+import elote from '@/assets/kitchen/elote.png';
+import tostilocos from '@/assets/kitchen/tostilocos.png';
+import frutaChile from '@/assets/kitchen/fruta-chile.png';
+import nachos from '@/assets/kitchen/nachos.png';
+import frozenPaletas from '@/assets/kitchen/frozen-paletas.png';
+import paletaMangoChile from '@/assets/kitchen/paleta-mango-chile.png';
 
 const menuImages: Record<string, string> = {
-  j1: jugoNaranja, j2: jugoVerde, j3: horchata, j4: licuadoFresa, j5: jamaica, j6: mangoChile,
-  t1: tortaJamon, t2: tortaMilanesa, t3: tortaCubana, t4: tortaCarnitas, t5: tortaPollo,
-  s1: elote, s2: tostilocos, s3: frutaChile, s4: nachos, s5: churros,
+  // Bebidas
+  b1: mangonada,
+  b2: horchata,
+  b3: jamaica,
+  b4: jugoNaranja,
+  b5: licuadoFresa,
+  b6: mangoChile,
+  // Antojitos
+  a1: papasLocas,
+  a2: chicharronPreparado,
+  a3: elote,
+  a4: tostilocos,
+  a5: frutaChile,
+  a6: nachos,
+  // Helados — use frozen paletas & mango chile paleta, alternate for variety
+  h1: frozenPaletas,
+  h2: paletaMangoChile,
+  h3: frozenPaletas,
+  h4: frozenPaletas,
+  h5: frozenPaletas,
+  h6: frozenPaletas,
 };
 
 interface RestaurantMenuProps {
@@ -34,17 +50,18 @@ interface RestaurantMenuProps {
 }
 
 const RestaurantMenu = ({ onAddToCart }: RestaurantMenuProps) => {
-  const [activeTab, setActiveTab] = useState<'jugos' | 'tortas' | 'snacks'>('jugos');
+  const [activeTab, setActiveTab] = useState<'all' | 'bebidas' | 'antojitos' | 'helados'>('all');
   const { t } = useLanguage();
 
   const categoryInfo = {
-    jugos: { label: t('menu.jugos.label'), desc: t('menu.jugos.desc') },
-    tortas: { label: t('menu.tortas.label'), desc: t('menu.tortas.desc') },
-    snacks: { label: t('menu.snacks.label'), desc: t('menu.snacks.desc') },
+    all: { label: '🍽️ All', desc: 'Browse our full kitchen menu — drinks, antojitos & frozen treats' },
+    bebidas: { label: '🥤 Bebidas', desc: 'Fresh-made drinks — mangonadas, aguas frescas & jugos naturales' },
+    antojitos: { label: '🍟 Antojitos', desc: 'Kitchen-prepared street food favorites — papas locas, chicharrón preparado & more' },
+    helados: { label: '🍦 Helados', desc: 'Frozen paletas & ice cream bars — La Michoacana style' },
   };
 
-  const tabs: Array<'jugos' | 'tortas' | 'snacks'> = ['jugos', 'tortas', 'snacks'];
-  const filtered = menuItems.filter((i) => i.category === activeTab);
+  const tabs: Array<'all' | 'bebidas' | 'antojitos' | 'helados'> = ['all', 'bebidas', 'antojitos', 'helados'];
+  const filtered = activeTab === 'all' ? menuItems : menuItems.filter((i) => i.category === activeTab);
 
   return (
     <>

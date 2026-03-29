@@ -44,7 +44,7 @@ const PaymentModal = ({ open, onClose, items, onComplete }: PaymentModalProps) =
 
   // Estimate prep time based on items
   const prepMinutes = items.reduce((total, item) => {
-    const perItem: Record<string, number> = { tortas: 12, snacks: 8, jugos: 5, candy: 2 };
+    const perItem: Record<string, number> = { antojitos: 12, bebidas: 5, helados: 2, candy: 2 };
     return total + (perItem[item.category] || 5) * item.quantity;
   }, 0);
   const prepTime = Math.max(15, Math.min(prepMinutes, 90));

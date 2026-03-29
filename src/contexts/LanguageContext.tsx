@@ -29,7 +29,7 @@ const translations: Record<string, Record<Lang, string>> = {
   'highlights.candy.title': { en: 'Authentic Candy', es: 'Dulces Auténticos' },
   'highlights.candy.desc': { en: 'Hundreds of imported Mexican candies — Mazapán, Pulparindo, Lucas & more.', es: 'Cientos de dulces mexicanos importados — Mazapán, Pulparindo, Lucas y más.' },
   'highlights.kitchen.title': { en: 'Fresh Kitchen', es: 'Cocina Fresca' },
-  'highlights.kitchen.desc': { en: 'Made-to-order tortas, jugos naturales & street snacks every day.', es: 'Tortas, jugos naturales y antojitos hechos al momento todos los días.' },
+  'highlights.kitchen.desc': { en: 'Mangonadas, papas locas, chicharrón preparado & antojitos every day.', es: 'Mangonadas, papas locas, chicharrón preparado y antojitos todos los días.' },
   'highlights.party.title': { en: 'Piñatas & Party', es: 'Piñatas y Fiesta' },
   'highlights.party.desc': { en: 'Handmade piñatas, party supplies & decorations for every celebration.', es: 'Piñatas hechas a mano, artículos y decoraciones para toda celebración.' },
   'highlights.explore': { en: 'Explore', es: 'Explorar' },
@@ -51,7 +51,7 @@ const translations: Record<string, Record<Lang, string>> = {
 
   // CTA
   'cta.title': { en: 'Ready to Order? 🌮', es: '¿Listo para Ordenar? 🌮' },
-  'cta.desc': { en: 'Fresh tortas, natural juices & street snacks — made to order for pickup.', es: 'Tortas frescas, jugos naturales y antojitos — hechos al momento para recoger.' },
+  'cta.desc': { en: 'Mangonadas, papas locas, chicharrón preparado & more — made fresh for pickup.', es: 'Mangonadas, papas locas, chicharrón preparado y más — hechos frescos para recoger.' },
   'cta.button': { en: '🍽️ View Menu & Order', es: '🍽️ Ver Menú y Ordenar' },
 
   // Contact
@@ -70,17 +70,18 @@ const translations: Record<string, Record<Lang, string>> = {
   'candy.visitUs': { en: '📍 Visit Us for the Full Selection!', es: '📍 ¡Visítanos para Ver Todo!' },
   'candy.visitDesc': { en: '100s more candies, piñatas & party supplies in store', es: 'Cientos de dulces, piñatas y artículos de fiesta más en la tienda' },
   'candy.all': { en: 'All', es: 'Todos' },
+  'candy.search': { en: 'Search candy, snacks, drinks...', es: 'Buscar dulces, snacks, bebidas...' },
 
   // Restaurant Menu
   'menu.title': { en: '🍽️ Fresh Kitchen Menu', es: '🍽️ Menú de Cocina Fresca' },
   'menu.desc': { en: 'Made fresh daily — order online for pickup!', es: '¡Hecho fresco todos los días — ordena en línea para recoger!' },
   'menu.addToOrder': { en: 'Add to Order', es: 'Agregar al Pedido' },
-  'menu.jugos.label': { en: '🍊 Jugos Naturales', es: '🍊 Jugos Naturales' },
-  'menu.jugos.desc': { en: 'Fresh-squeezed juices & aguas frescas', es: 'Jugos frescos y aguas frescas' },
-  'menu.tortas.label': { en: '🥪 Tortas', es: '🥪 Tortas' },
-  'menu.tortas.desc': { en: 'Authentic Mexican sandwiches', es: 'Tortas mexicanas auténticas' },
-  'menu.snacks.label': { en: '🌽 Snacks', es: '🌽 Antojitos' },
-  'menu.snacks.desc': { en: 'Street-style bites & treats', es: 'Antojitos y botanas callejeras' },
+  'menu.bebidas.label': { en: '🥤 Bebidas', es: '🥤 Bebidas' },
+  'menu.bebidas.desc': { en: 'Mangonadas, aguas frescas & jugos naturales', es: 'Mangonadas, aguas frescas y jugos naturales' },
+  'menu.antojitos.label': { en: '🍟 Antojitos', es: '🍟 Antojitos' },
+  'menu.antojitos.desc': { en: 'Papas locas, chicharrón preparado & street food', es: 'Papas locas, chicharrón preparado y antojitos callejeros' },
+  'menu.helados.label': { en: '🍦 Helados', es: '🍦 Helados' },
+  'menu.helados.desc': { en: 'Frozen paletas & ice cream bars', es: 'Paletas y barras de helado' },
 
   // Cart
   'cart.title': { en: '🛒 Your Order', es: '🛒 Tu Pedido' },

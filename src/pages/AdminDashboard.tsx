@@ -269,11 +269,11 @@ const AdminDashboard = () => {
                   <h3 className="font-fredoka text-lg text-foreground mb-4">Top Items</h3>
                   <div className="space-y-3">
                     {[
-                      { name: 'Torta Cubana', sold: 42 },
-                      { name: 'Horchata', sold: 38 },
-                      { name: 'Elote en Vaso', sold: 35 },
-                      { name: 'Jugo de Naranja', sold: 28 },
-                      { name: 'Churros', sold: 25 },
+                      { name: 'Papas Locas', sold: 42 },
+                      { name: 'Mangonada', sold: 38 },
+                      { name: 'Chicharrón Preparado', sold: 35 },
+                      { name: 'Paleta de Fresa', sold: 28 },
+                      { name: 'Elote en Vaso', sold: 25 },
                     ].map((item, i) => (
                       <div key={item.name} className="flex items-center justify-between py-2 border-b border-border last:border-0">
                         <div className="flex items-center gap-3">
