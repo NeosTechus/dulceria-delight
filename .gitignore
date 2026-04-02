@@ -27,3 +27,6 @@ dist-ssr
 .env
 .env.*
 .vercel
+
+# Claude (Anthropic) local settings/cache (do not commit)
+.claude/
