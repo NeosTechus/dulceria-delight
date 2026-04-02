@@ -7,7 +7,8 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useOrders, type OrderStatus } from '@/contexts/OrderContext';
 import {
   ArrowLeft, Clock, CheckCircle, ChefHat, Eye, Flame,
-  ShieldCheck, Truck, ShoppingBag, History, XCircle, Timer
+  ShieldCheck, Truck, ShoppingBag, History, XCircle, Timer,
+  Volume2, VolumeX
 } from 'lucide-react';
 
 
@@ -26,6 +27,7 @@ const statusConfig: Record<string, { bg: string; icon: typeof Clock; label: stri
   ready: { bg: 'bg-green-500', icon: CheckCircle, label: 'Ready' },
   out_for_delivery: { bg: 'bg-purple-500', icon: Truck, label: 'Out for Delivery', next: 'delivered' },
   delivered: { bg: 'bg-emerald-600', icon: ShieldCheck, label: 'Done' },
+  rejected: { bg: 'bg-red-600', icon: XCircle, label: 'Rejected' },
 };
 
 const ChefDashboard = () => {
@@ -50,6 +52,7 @@ const ChefDashboard = () => {
   const readyOrders = orders.filter((o) => o.status === 'ready');
   const outForDeliveryOrders = orders.filter((o) => o.status === 'out_for_delivery');
   const deliveredOrders = orders.filter((o) => o.status === 'delivered');
+  const rejectedOrders = orders.filter((o) => o.status === 'rejected');
 
   const pendingCount = pendingOrders.length;
   const preparingCount = preparingOrders.length;
@@ -57,18 +60,24 @@ const ChefDashboard = () => {
   const outCount = outForDeliveryOrders.length;
 
   // Play notification sound when new pending orders arrive
-  useOrderNotification(pendingCount);
+  const { soundEnabled, toggleSound } = useOrderNotification(pendingCount);
 
   const sections: StatusSection[] = [
     { key: 'pending', label: 'New Orders', emoji: '🔔', color: 'border-yellow-500', statuses: ['pending'] },
     { key: 'preparing', label: 'Preparing', emoji: '🔥', color: 'border-blue-500', statuses: ['accepted', 'preparing'] },
-    { key: 'ready', label: 'Ready for Pickup / Delivery', emoji: '✅', color: 'border-green-500', statuses: ['ready'] },
+    { key: 'ready_pickup', label: 'Ready for Pickup', emoji: '📦', color: 'border-green-500', statuses: ['ready'] },
+    { key: 'ready_delivery', label: 'Ready for Delivery', emoji: '🚚', color: 'border-emerald-500', statuses: ['ready'] },
     { key: 'out', label: 'Out for Delivery', emoji: '🚗', color: 'border-purple-500', statuses: ['out_for_delivery'] },
     { key: 'done', label: 'Completed / Delivered', emoji: '🎉', color: 'border-muted-foreground', statuses: ['delivered'] },
+    { key: 'rejected', label: 'Rejected (Refunded)', emoji: '❌', color: 'border-red-500', statuses: ['rejected'] },
   ];
 
-  const getOrdersForSection = (section: StatusSection) =>
-    orders.filter((o) => section.statuses.includes(o.status));
+  const getOrdersForSection = (section: StatusSection) => {
+    const statusFiltered = orders.filter((o) => section.statuses.includes(o.status));
+    if (section.key === 'ready_pickup') return statusFiltered.filter((o) => o.orderType !== 'delivery');
+    if (section.key === 'ready_delivery') return statusFiltered.filter((o) => o.orderType === 'delivery');
+    return statusFiltered;
+  };
 
   const timeAgo = (date: Date) => {
     const mins = Math.floor((Date.now() - date.getTime()) / 60000);
@@ -101,7 +110,7 @@ const ChefDashboard = () => {
             <CheckCircle size={14} /> Accept
           </motion.button>
           <motion.button
-            onClick={(e) => { e.stopPropagation(); updateOrderStatus(orderId, 'delivered'); }}
+            onClick={(e) => { e.stopPropagation(); updateOrderStatus(orderId, 'rejected'); }}
             className="px-4 py-2 rounded-lg bg-destructive/10 text-destructive font-bold text-sm flex items-center gap-2"
             whileHover={{ scale: 1.03 }}
             whileTap={{ scale: 0.97 }}
@@ -144,6 +153,12 @@ const ChefDashboard = () => {
   const toggleSection = (key: string) =>
     setCollapsedSections((prev) => ({ ...prev, [key]: !prev[key] }));
 
+  // Convert long MongoDB IDs to readable short IDs like #DM-A12F
+  const shortId = (id: string) => {
+    if (id.startsWith('ORD-')) return id;
+    return `#DM-${id.slice(-4).toUpperCase()}`;
+  };
+
   return (
     <div className="min-h-screen bg-muted/30">
       {/* Header */}
@@ -164,6 +179,19 @@ const ChefDashboard = () => {
             </div>
           </div>
           <div className="flex items-center gap-2">
+            <motion.button
+              onClick={toggleSound}
+              className={`flex items-center gap-2 px-3 py-2 rounded-lg font-bold text-sm transition-colors ${soundEnabled
+                ? 'bg-green-500/10 text-green-600 hover:bg-green-500/20'
+                : 'bg-muted text-muted-foreground hover:bg-muted/80'
+                }`}
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.97 }}
+              title={soundEnabled ? 'Sound on — click to mute' : 'Sound off — click to unmute'}
+            >
+              {soundEnabled ? <Volume2 size={16} /> : <VolumeX size={16} />}
+              {soundEnabled ? 'Sound On' : 'Sound Off'}
+            </motion.button>
             <Link
               to="/admin"
               className="flex items-center gap-2 px-4 py-2 rounded-lg bg-primary/10 text-primary font-bold text-sm hover:bg-primary/20 transition-colors"
@@ -176,12 +204,14 @@ const ChefDashboard = () => {
       </div>
 
       <div className="container mx-auto px-4 py-6">
-        <div className="grid grid-cols-4 gap-4 mb-6">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 mb-6">
           {[
             { label: 'Pending', count: pendingCount, color: 'bg-yellow-500' },
             { label: 'Preparing', count: preparingCount, color: 'bg-blue-500' },
-            { label: 'Ready', count: readyCount, color: 'bg-green-500' },
-            { label: 'Out', count: outCount, color: 'bg-purple-500' },
+            { label: 'Ready (Pickup)', count: readyOrders.filter(o => o.orderType !== 'delivery').length, color: 'bg-green-500' },
+            { label: 'Ready (Delivery)', count: readyOrders.filter(o => o.orderType === 'delivery').length, color: 'bg-emerald-500' },
+            { label: 'Out for Delivery', count: outCount, color: 'bg-purple-500' },
+            { label: 'Completed', count: deliveredOrders.length, color: 'bg-muted-foreground' },
           ].map((s) => (
             <motion.div
               key={s.label}
@@ -220,6 +250,32 @@ const ChefDashboard = () => {
                   <span className="text-muted-foreground text-sm">{isCollapsed ? '▸' : '▾'}</span>
                 </button>
 
+                {/* Accept All / Reject All for pending section */}
+                {section.key === 'pending' && !isCollapsed && sectionOrders.length > 1 && (
+                  <div className="flex items-center gap-2 mb-3 pl-2">
+                    <motion.button
+                      onClick={() => sectionOrders.forEach((o) => updateOrderStatus(o.id, 'accepted'))}
+                      className="px-4 py-2 rounded-lg bg-gradient-fiesta text-primary-foreground font-bold text-sm flex items-center gap-2"
+                      whileHover={{ scale: 1.03 }}
+                      whileTap={{ scale: 0.97 }}
+                    >
+                      <CheckCircle size={14} /> Accept All ({sectionOrders.length})
+                    </motion.button>
+                    <motion.button
+                      onClick={() => {
+                        if (confirm(`Reject all ${sectionOrders.length} pending orders? This will refund all payments.`)) {
+                          sectionOrders.forEach((o) => updateOrderStatus(o.id, 'rejected'));
+                        }
+                      }}
+                      className="px-4 py-2 rounded-lg bg-destructive/10 text-destructive font-bold text-sm flex items-center gap-2"
+                      whileHover={{ scale: 1.03 }}
+                      whileTap={{ scale: 0.97 }}
+                    >
+                      <XCircle size={14} /> Reject All ({sectionOrders.length})
+                    </motion.button>
+                  </div>
+                )}
+
                 {!isCollapsed && (
                   <div className="space-y-3 pl-2">
                     {sectionOrders.length === 0 ? (
@@ -237,9 +293,8 @@ const ChefDashboard = () => {
                               initial={{ opacity: 0, y: 20 }}
                               animate={{ opacity: 1, y: 0 }}
                               exit={{ opacity: 0, x: -100 }}
-                              className={`bg-card rounded-xl border overflow-hidden ${
-                                order.status === 'pending' ? 'border-yellow-500/50 shadow-lg shadow-yellow-500/10' : 'border-border'
-                              }`}
+                              className={`bg-card rounded-xl border overflow-hidden ${order.status === 'pending' ? 'border-yellow-500/50 shadow-lg shadow-yellow-500/10' : 'border-border'
+                                }`}
                             >
                               <div
                                 className="p-4 flex items-center justify-between cursor-pointer hover:bg-muted/30 transition-colors"
@@ -249,13 +304,12 @@ const ChefDashboard = () => {
                                   <div className={`w-2 h-12 rounded-full ${config.bg}`} />
                                   <div>
                                     <div className="flex items-center gap-2 flex-wrap">
-                                      <span className="font-bold text-foreground">{order.id}</span>
+                                      <span className="font-bold text-foreground">{shortId(order.id)}</span>
                                       <span className={`px-2 py-0.5 rounded-full text-xs font-bold text-white ${config.bg}`}>
                                         {config.label}
                                       </span>
-                                      <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${
-                                        order.orderType === 'delivery' ? 'bg-blue-500/10 text-blue-500' : 'bg-primary/10 text-primary'
-                                      }`}>
+                                      <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${order.orderType === 'delivery' ? 'bg-blue-500/10 text-blue-500' : 'bg-primary/10 text-primary'
+                                        }`}>
                                         {order.orderType === 'delivery' ? <Truck size={12} className="inline mr-1" /> : <ShoppingBag size={12} className="inline mr-1" />}
                                         {order.orderType}
                                       </span>
@@ -263,13 +317,22 @@ const ChefDashboard = () => {
                                     <p className="text-sm text-muted-foreground">
                                       {order.customerName} · {timeAgo(order.createdAt)} · {order.items.length} items · ${order.total.toFixed(2)}
                                     </p>
+                                    {order.orderType === 'delivery' && order.deliveryAddress && (
+                                      <p className="text-xs text-blue-500 font-bold mt-0.5 flex items-center gap-1">
+                                        📍 {order.deliveryAddress}
+                                      </p>
+                                    )}
+                                    {order.orderType !== 'delivery' && order.pickupTime && (
+                                      <p className="text-xs text-primary font-bold mt-0.5 flex items-center gap-1">
+                                        🕐 Pickup: {order.pickupTime}{order.pickupDate ? ` · ${order.pickupDate}` : ''}
+                                      </p>
+                                    )}
                                     {(() => {
                                       const cd = getCountdown(order);
                                       if (!cd) return null;
                                       return (
-                                        <div className={`flex items-center gap-1.5 mt-1 text-xs font-bold ${
-                                          cd.isOverdue ? 'text-destructive animate-pulse' : cd.isUrgent ? 'text-yellow-500' : 'text-muted-foreground'
-                                        }`}>
+                                        <div className={`flex items-center gap-1.5 mt-1 text-xs font-bold ${cd.isOverdue ? 'text-destructive animate-pulse' : cd.isUrgent ? 'text-yellow-500' : 'text-muted-foreground'
+                                          }`}>
                                           <Timer size={12} />
                                           {cd.isOverdue ? 'OVERDUE' : `${String(cd.mins).padStart(2, '0')}:${String(cd.secs).padStart(2, '0')} left`}
                                         </div>
@@ -278,9 +341,27 @@ const ChefDashboard = () => {
                                   </div>
                                 </div>
                                 <div className="flex items-center gap-2">
-                                  <button className="p-2 rounded-lg hover:bg-muted transition-colors text-muted-foreground">
-                                    <Eye size={16} />
-                                  </button>
+                                  <select
+                                    value={order.status}
+                                    onClick={(e) => e.stopPropagation()}
+                                    onChange={(e) => {
+                                      const newStatus = e.target.value as OrderStatus;
+                                      if (newStatus === 'rejected' && order.status !== 'rejected') {
+                                        if (!confirm('Reject this order? Payment will be refunded.')) {
+                                          e.target.value = order.status;
+                                          return;
+                                        }
+                                      }
+                                      updateOrderStatus(order.id, newStatus);
+                                    }}
+                                    className="px-2 py-1.5 rounded-lg border border-border bg-muted/50 text-xs font-bold text-foreground cursor-pointer focus:outline-none focus:ring-2 focus:ring-ring"
+                                  >
+                                    <option value="preparing">🔥 Preparing</option>
+                                    <option value="ready">✅ Ready</option>
+                                    <option value="out_for_delivery">🚗 Out for Delivery</option>
+                                    <option value="delivered">🎉 Delivered</option>
+                                    <option value="rejected">❌ Rejected</option>
+                                  </select>
                                   {getActionButton(order.id, order.status, order.orderType)}
                                 </div>
                               </div>
@@ -356,6 +437,8 @@ const ChefDashboard = () => {
                                           </div>
                                         ))}
                                       </div>
+
+
                                     </div>
                                   </motion.div>
                                 )}

@@ -1,11 +1,12 @@
-import { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useState, useEffect, useCallback } from 'react';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { LogIn, Search, Package, ArrowRight, Clock, CheckCircle, Flame, ShoppingBag, Truck, Timer } from 'lucide-react';
-import { useOrders, type OrderStatus } from '@/contexts/OrderContext';
+import { useOrders, type OrderStatus, type PlacedOrder } from '@/contexts/OrderContext';
 import { useAuth } from '@/contexts/AuthContext';
 import Navbar from '@/components/Navbar';
 import { useCart } from '@/contexts/CartContext';
+import { API_BASE_URL } from '@/config/api';
 import Footer from '@/components/Footer';
 
 const statusSteps: { key: OrderStatus; label: string; emoji: string; deliveryOnly?: boolean }[] = [
@@ -18,6 +19,7 @@ const statusSteps: { key: OrderStatus; label: string; emoji: string; deliveryOnl
 ];
 
 const statusIndex = (s: OrderStatus, isDelivery: boolean) => {
+  if (s === 'rejected') return -1; // rejected doesn't fit the progress bar
   const steps = isDelivery ? statusSteps : statusSteps.filter((st) => !st.deliveryOnly);
   return steps.findIndex((st) => st.key === s);
 };
@@ -29,17 +31,121 @@ const statusColors: Record<OrderStatus, string> = {
   ready: 'bg-green-500',
   out_for_delivery: 'bg-purple-500',
   delivered: 'bg-muted-foreground',
+  rejected: 'bg-red-500',
 };
 
+const CUSTOMER_ORDERS_KEY = 'customer_order_ids';
+
+function getSavedOrderIds(): string[] {
+  try {
+    return JSON.parse(localStorage.getItem(CUSTOMER_ORDERS_KEY) || '[]');
+  } catch { return []; }
+}
+
+function saveOrderId(id: string) {
+  const ids = getSavedOrderIds();
+  if (!ids.includes(id)) {
+    ids.unshift(id);
+    // Keep max 20 order IDs
+    localStorage.setItem(CUSTOMER_ORDERS_KEY, JSON.stringify(ids.slice(0, 20)));
+  }
+}
+
 const OrdersPage = () => {
-  const { orders } = useOrders();
-  const { isAuthenticated } = useAuth();
+  const { orders, refreshOrders, placeOrder } = useOrders();
+  const { user, isAuthenticated } = useAuth();
   const { cartCount, setCartOpen } = useCart();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [searchEmail, setSearchEmail] = useState('');
   const [searchedEmail, setSearchedEmail] = useState('');
+  const [paymentVerified, setPaymentVerified] = useState(false);
+  const [customerOrders, setCustomerOrders] = useState<PlacedOrder[]>([]);
 
-  // Auto-refresh every 5s to keep timestamps and status current
+  // Load customer orders from localStorage on mount + after Stripe redirect
+  const loadCustomerOrders = useCallback(async () => {
+    const savedIds = getSavedOrderIds();
+    if (savedIds.length === 0) return;
+
+    const fetched: PlacedOrder[] = [];
+    for (const id of savedIds) {
+      try {
+        const res = await fetch(`${API_BASE_URL}/orders/${id}`);
+        if (!res.ok) continue;
+        const order = await res.json();
+        if (order && order._id) {
+          fetched.push({
+            id: order._id,
+            items: (order.items || []).map((i: any) => ({
+              name: i.name,
+              qty: i.quantity || 1,
+              category: i.category || '',
+              emoji: i.emoji || '',
+            })),
+            customerName: order.customerName || '',
+            customerPhone: order.customerPhone || '',
+            customerEmail: order.customerEmail || '',
+            orderType: order.orderType || 'pickup',
+            deliveryAddress: order.deliveryAddress,
+            pickupDate: order.pickupDate,
+            pickupTime: order.pickupTime,
+            status: order.status || 'pending',
+            statusHistory: [{ status: order.status || 'pending', at: new Date(order.createdAt) }],
+            total: (order.total || 0) + (order.tax || 0),
+            createdAt: new Date(order.createdAt),
+            prepMinutes: 20,
+          });
+        }
+      } catch { /* skip failed fetches */ }
+    }
+    setCustomerOrders(fetched);
+  }, []);
+
+  useEffect(() => {
+    loadCustomerOrders();
+    // Refresh customer orders every 2s for live tracking
+    const interval = setInterval(loadCustomerOrders, 2000);
+    return () => clearInterval(interval);
+  }, [loadCustomerOrders]);
+
+  // Handle Stripe redirect
+  useEffect(() => {
+    const payment = searchParams.get('payment');
+    const orderId = searchParams.get('orderId');
+
+    if (!orderId || payment !== 'success') return;
+
+    // Save order ID to localStorage for persistence
+    saveOrderId(orderId);
+
+    // Verify payment in background
+    fetch(`${API_BASE_URL}/checkout/verify`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ orderId }),
+    })
+      .then((res) => res.json())
+      .then(() => {
+        setPaymentVerified(true);
+        loadCustomerOrders();
+        refreshOrders();
+        setSearchParams({});
+      })
+      .catch(console.error);
+  }, []); // Only run once on mount
+
+  // Show success banner immediately if we came from Stripe
+  const cameFromStripe = searchParams.get('payment') === 'success';
+
+  // Combine context orders + customer orders (deduplicate by ID)
+  const isChefOrAdmin = user && ['admin', 'chef'].includes(user.role);
+  const allOrders = isChefOrAdmin ? orders : (() => {
+    const contextIds = new Set(orders.map(o => o.id));
+    const uniqueCustomer = customerOrders.filter(o => !contextIds.has(o.id));
+    return [...orders, ...uniqueCustomer];
+  })();
+
+  // Auto-refresh every 5s to keep timestamps current
   const [, setTick] = useState(0);
   useEffect(() => {
     const interval = setInterval(() => setTick((t) => t + 1), 5000);
@@ -52,10 +158,11 @@ const OrdersPage = () => {
   };
 
   const filteredOrders = searchedEmail
-    ? orders.filter((o) => o.customerEmail.toLowerCase() === searchedEmail)
-    : orders;
+    ? allOrders.filter((o) => o.customerEmail.toLowerCase() === searchedEmail)
+    : allOrders;
 
-  const activeOrders = filteredOrders.filter((o) => o.status !== 'delivered');
+  const activeOrders = filteredOrders.filter((o) => !['delivered', 'rejected'].includes(o.status));
+  const rejectedOrders = filteredOrders.filter((o) => o.status === 'rejected');
   const pastOrders = filteredOrders.filter((o) => o.status === 'delivered');
 
   const timeAgo = (date: Date) => {
@@ -75,12 +182,29 @@ const OrdersPage = () => {
     return ready;
   };
 
+  const shortId = (id: string) => {
+    if (id.startsWith('ORD-')) return id;
+    return `#DM-${id.slice(-4).toUpperCase()}`;
+  };
+
   return (
     <div className="min-h-screen bg-muted/30">
       <Navbar cartCount={cartCount} onCartClick={() => setCartOpen(true)} />
 
       <div className="pt-32 pb-20">
         <div className="container mx-auto px-4 max-w-4xl">
+          {/* Payment success banner */}
+          {(cameFromStripe || paymentVerified) && (
+            <motion.div
+              className="mb-6 p-4 rounded-2xl bg-green-500/10 border border-green-500/20 text-center"
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+            >
+              <p className="text-green-600 font-bold text-lg">✅ Payment successful! Your order has been placed.</p>
+              <p className="text-green-600/70 text-sm mt-1">The kitchen has been notified. Track your order below.</p>
+            </motion.div>
+          )}
+
           {/* Header */}
           <motion.div
             className="text-center mb-10"
@@ -165,13 +289,12 @@ const OrdersPage = () => {
                       <div className="flex items-center justify-between mb-4">
                         <div>
                           <div className="flex items-center gap-2">
-                            <span className="font-bold text-foreground text-lg">{order.id}</span>
+                            <span className="font-bold text-foreground text-lg">{shortId(order.id)}</span>
                             <span className={`px-2 py-0.5 rounded-full text-xs font-bold text-white ${statusColors[order.status]}`}>
                               {currentStep?.label}
                             </span>
-                            <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${
-                              isDelivery ? 'bg-blue-500/10 text-blue-500' : 'bg-primary/10 text-primary'
-                            }`}>
+                            <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${isDelivery ? 'bg-blue-500/10 text-blue-500' : 'bg-primary/10 text-primary'
+                              }`}>
                               {isDelivery ? <Truck size={12} className="inline mr-1" /> : <ShoppingBag size={12} className="inline mr-1" />}
                               {order.orderType}
                             </span>
@@ -188,9 +311,8 @@ const OrdersPage = () => {
                         {visibleSteps.slice(0, -1).map((step, i) => (
                           <div
                             key={step.key}
-                            className={`h-1.5 flex-1 rounded-full transition-colors ${
-                              i <= currentIdx ? 'bg-primary' : 'bg-border'
-                            }`}
+                            className={`h-1.5 flex-1 rounded-full transition-colors ${i <= currentIdx ? 'bg-primary' : 'bg-border'
+                              }`}
                           />
                         ))}
                       </div>
@@ -274,6 +396,44 @@ const OrdersPage = () => {
             </motion.div>
           )}
 
+          {/* Rejected Orders */}
+          {rejectedOrders.length > 0 && (
+            <motion.div
+              className="mb-8"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.25 }}
+            >
+              <h2 className="font-fredoka text-xl text-foreground mb-4 flex items-center gap-2">
+                ❌ Rejected Orders
+              </h2>
+              <div className="space-y-3">
+                {rejectedOrders.map((order) => (
+                  <div key={order.id} className="bg-card border-2 border-red-500/20 rounded-xl p-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <span className="font-bold text-foreground">{shortId(order.id)}</span>
+                          <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-red-500 text-white">
+                            Rejected
+                          </span>
+                        </div>
+                        <p className="text-sm text-muted-foreground mt-1">
+                          {order.items.length} items · ${order.total.toFixed(2)} · {timeAgo(order.createdAt)}
+                        </p>
+                      </div>
+                      <span className="text-2xl">❌</span>
+                    </div>
+                    <div className="mt-3 p-3 rounded-lg bg-red-500/5 text-sm text-red-600">
+                      <p className="font-bold">This order was not accepted by the kitchen.</p>
+                      <p className="text-red-500/70 mt-1">Your payment will be refunded. Please try ordering again or contact us at (314) 771-8648.</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </motion.div>
+          )}
+
           {/* Past Orders */}
           {pastOrders.length > 0 && (
             <motion.div
@@ -288,7 +448,7 @@ const OrdersPage = () => {
                   <div key={order.id} className="bg-card border border-border rounded-xl p-4 flex items-center justify-between">
                     <div>
                       <div className="flex items-center gap-2">
-                        <span className="font-bold text-foreground">{order.id}</span>
+                        <span className="font-bold text-foreground">{shortId(order.id)}</span>
                         <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-muted text-muted-foreground">
                           Complete
                         </span>

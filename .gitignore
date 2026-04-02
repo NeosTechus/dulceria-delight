@@ -22,3 +22,11 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Environment variables
+.env
+.env.*
+.vercel
+
+# Claude (Anthropic) local settings/cache (do not commit)
+.claude/

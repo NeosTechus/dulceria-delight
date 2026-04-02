@@ -107,6 +107,15 @@ const Footer = () => {
           </motion.div>
         </div>
 
+        {/* Disclaimer */}
+        <div className="py-5 border-b border-primary-foreground/10 text-center bg-primary-foreground/5 -mx-4 px-4 rounded-lg">
+          <p className="text-sm text-primary-foreground/70 max-w-2xl mx-auto leading-relaxed">
+            Products, prices, and availability may vary in-store. Images shown are for reference purposes only, are property of their respective brands and manufacturers, and may not reflect exact packaging or current stock. Please contact the store at{' '}
+            <a href="tel:+13147718648" className="text-fiesta-orange hover:text-fiesta-yellow transition-colors underline font-semibold">(314) 771-8648</a>{' '}
+            for any clarification. All trademarks and product images belong to their respective owners.
+          </p>
+        </div>
+
         {/* Bottom Bar */}
         <div className="py-5 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-primary-foreground/30">
           <p>© {new Date().getFullYear()} Dulceria Medina — All rights reserved.</p>
@@ -116,11 +125,7 @@ const Footer = () => {
             rel="noopener noreferrer"
             className="inline-flex items-center gap-2 text-primary-foreground/40 hover:text-fiesta-turquoise transition-colors"
           >
-            <svg width="20" height="20" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <rect width="40" height="40" rx="8" fill="#1a3a5c" />
-              <path d="M12 28V12l8 10 8-10v16" stroke="#00bcd4" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
-              <path d="M20 10l6-2" stroke="#00bcd4" strokeWidth="2" strokeLinecap="round" />
-            </svg>
+            <img src="/neostechus-logo.png" alt="NeosTechs" width="24" height="24" className="rounded" />
             Proud client of NeosTechs
           </a>
         </div>

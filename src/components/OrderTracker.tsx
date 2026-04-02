@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Clock, CheckCircle, Flame, Package, Truck } from 'lucide-react';
 import { useOrders, type OrderStatus } from '@/contexts/OrderContext';
+import { useAuth } from '@/contexts/AuthContext';
 
 const allStatusSteps: { key: OrderStatus; label: string; icon: typeof Clock; emoji: string; deliveryOnly?: boolean }[] = [
   { key: 'pending', label: 'Order Placed', icon: Clock, emoji: '📝' },
@@ -17,12 +18,22 @@ const getStatusIndex = (s: OrderStatus, isDelivery: boolean) => getSteps(isDeliv
 
 const OrderTracker = () => {
   const { orders } = useOrders();
+  const { user } = useAuth();
   const [open, setOpen] = useState(false);
+
+  // Hide for chef/admin — they use the dashboard
+  if (user && ['chef', 'admin'].includes(user.role)) return null;
 
   // Show only active (non-delivered) orders
   const activeOrders = orders.filter((o) => o.status !== 'delivered');
 
   if (activeOrders.length === 0) return null;
+
+  // Convert long MongoDB IDs to readable short IDs like #DM-A12F
+  const shortId = (id: string) => {
+    if (id.startsWith('ORD-')) return id;
+    return `#DM-${id.slice(-4).toUpperCase()}`;
+  };
 
   return (
     <>
@@ -74,7 +85,7 @@ const OrderTracker = () => {
                     <div key={order.id} className="border border-border rounded-xl p-4">
                       <div className="flex items-center justify-between mb-4">
                         <div>
-                          <p className="font-bold text-foreground text-lg">{order.id}</p>
+                          <p className="font-bold text-foreground text-lg">{shortId(order.id)}</p>
                           <p className="text-xs text-muted-foreground">
                             {order.items.length} items · ${order.total.toFixed(2)}
                           </p>
@@ -94,29 +105,26 @@ const OrderTracker = () => {
                             <div key={step.key} className="flex items-start gap-3 mb-0">
                               <div className="flex flex-col items-center">
                                 <div
-                                  className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold shrink-0 transition-colors ${
-                                    isComplete
-                                      ? 'bg-accent text-accent-foreground'
-                                      : isCurrent
+                                  className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold shrink-0 transition-colors ${isComplete
+                                    ? 'bg-accent text-accent-foreground'
+                                    : isCurrent
                                       ? 'bg-primary text-primary-foreground animate-pulse'
                                       : 'bg-muted text-muted-foreground'
-                                  }`}
+                                    }`}
                                 >
                                   {isComplete ? <CheckCircle size={16} /> : <step.icon size={16} />}
                                 </div>
                                 {i < steps.length - 2 && (
                                   <div
-                                    className={`w-0.5 h-8 ${
-                                      isComplete ? 'bg-accent' : 'bg-border'
-                                    }`}
+                                    className={`w-0.5 h-8 ${isComplete ? 'bg-accent' : 'bg-border'
+                                      }`}
                                   />
                                 )}
                               </div>
                               <div className="pt-1">
                                 <p
-                                  className={`text-sm font-bold ${
-                                    isComplete || isCurrent ? 'text-foreground' : 'text-muted-foreground'
-                                  }`}
+                                  className={`text-sm font-bold ${isComplete || isCurrent ? 'text-foreground' : 'text-muted-foreground'
+                                    }`}
                                 >
                                   {step.label}
                                 </p>

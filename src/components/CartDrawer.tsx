@@ -65,7 +65,7 @@ const CartDrawer = ({ open, onClose, items, onUpdateQty, onRemove, onCheckout }:
   };
 
   const categoryLabel = (cat: string) => {
-    const labels: Record<string, string> = { jugos: '🍊', tortas: '🥪', snacks: '🌽', candy: '🍬' };
+    const labels: Record<string, string> = { bebidas: '🥤', antojitos: '🍟', helados: '🍦', candy: '🍬' };
     return labels[cat] || '';
   };
 
