@@ -20,15 +20,74 @@ interface StatusSection {
   statuses: string[];
 }
 
-const statusConfig: Record<string, { bg: string; icon: typeof Clock; label: string; next?: OrderStatus }> = {
-  pending: { bg: 'bg-yellow-500', icon: Clock, label: 'Pending' },
-  accepted: { bg: 'bg-blue-400', icon: CheckCircle, label: 'Accepted', next: 'preparing' },
-  preparing: { bg: 'bg-blue-600', icon: Flame, label: 'Preparing', next: 'ready' },
-  ready: { bg: 'bg-green-500', icon: CheckCircle, label: 'Ready' },
-  out_for_delivery: { bg: 'bg-purple-500', icon: Truck, label: 'Out for Delivery', next: 'delivered' },
-  delivered: { bg: 'bg-emerald-600', icon: ShieldCheck, label: 'Done' },
-  rejected: { bg: 'bg-red-600', icon: XCircle, label: 'Rejected' },
+type Lang = 'es' | 'en';
+
+const i18n: Record<Lang, Record<string, string>> = {
+  es: {
+    title: 'Panel de Cocina', subtitle: 'Gestión de pedidos',
+    soundOn: 'Sonido', soundOff: 'Silencio', adminView: 'Vista Admin',
+    pending: 'Pendiente', accepted: 'Aceptado', preparing: 'Preparando',
+    ready: 'Listo', outForDelivery: 'En Camino', done: 'Entregado', rejected: 'Rechazado',
+    statPending: 'Pendientes', statPreparing: 'Preparando',
+    statReadyPickup: 'Listo (Recoger)', statReadyDelivery: 'Listo (Envío)',
+    statOut: 'En Camino', statCompleted: 'Completados',
+    secNew: 'Nuevos Pedidos', secPreparing: 'Preparando',
+    secReadyPickup: 'Listo para Recoger', secReadyDelivery: 'Listo para Envío',
+    secOut: 'En Camino', secDone: 'Completados / Entregados', secRejected: 'Rechazados (Reembolsados)',
+    noOrders: 'No hay pedidos aquí',
+    accept: 'Aceptar', reject: 'Rechazar',
+    acceptAll: 'Aceptar Todos', rejectAll: 'Rechazar Todos',
+    rejectAllConfirm: '¿Rechazar todos los pedidos pendientes? Se reembolsarán los pagos.',
+    rejectOneConfirm: '¿Rechazar este pedido? Se reembolsará el pago.',
+    startPreparing: '🔥 Preparar', markReady: '✅ Listo',
+    outDelivery: '🚗 En Camino', complete: '📦 Completar', delivered: '✅ Entregado', next: 'Siguiente',
+    phone: '📞 Teléfono', email: '✉️ Correo',
+    deliveryAddr: '📍 Dirección de Envío', pickupDate: '📅 Fecha de Recogida',
+    pickupTime: '🕐 Hora de Recogida', prepTime: 'Tiempo de Prep.', items: 'Artículos',
+    pickup: 'Recoger', delivery: 'Envío',
+    justNow: 'Ahora', minAgo: 'min atrás', hAgo: 'h atrás',
+    overdue: 'ATRASADO', left: 'restante',
+    dropPreparing: '🔥 Preparando', dropReady: '✅ Listo',
+    dropOut: '🚗 En Camino', dropDelivered: '🎉 Entregado', dropRejected: '❌ Rechazado',
+  },
+  en: {
+    title: 'Chef Dashboard', subtitle: 'Kitchen order management',
+    soundOn: 'Sound On', soundOff: 'Sound Off', adminView: 'Admin View',
+    pending: 'Pending', accepted: 'Accepted', preparing: 'Preparing',
+    ready: 'Ready', outForDelivery: 'Out for Delivery', done: 'Done', rejected: 'Rejected',
+    statPending: 'Pending', statPreparing: 'Preparing',
+    statReadyPickup: 'Ready (Pickup)', statReadyDelivery: 'Ready (Delivery)',
+    statOut: 'Out for Delivery', statCompleted: 'Completed',
+    secNew: 'New Orders', secPreparing: 'Preparing',
+    secReadyPickup: 'Ready for Pickup', secReadyDelivery: 'Ready for Delivery',
+    secOut: 'Out for Delivery', secDone: 'Completed / Delivered', secRejected: 'Rejected (Refunded)',
+    noOrders: 'No orders here',
+    accept: 'Accept', reject: 'Reject',
+    acceptAll: 'Accept All', rejectAll: 'Reject All',
+    rejectAllConfirm: 'Reject all pending orders? This will refund all payments.',
+    rejectOneConfirm: 'Reject this order? Payment will be refunded.',
+    startPreparing: '🔥 Start Preparing', markReady: '✅ Mark Ready',
+    outDelivery: '🚗 Out for Delivery', complete: '📦 Complete', delivered: '✅ Delivered', next: 'Next',
+    phone: '📞 Phone', email: '✉️ Email',
+    deliveryAddr: '📍 Delivery Address', pickupDate: '📅 Pickup Date',
+    pickupTime: '🕐 Pickup Time', prepTime: 'Prep Time', items: 'Items',
+    pickup: 'Pickup', delivery: 'Delivery',
+    justNow: 'Just now', minAgo: 'min ago', hAgo: 'h ago',
+    overdue: 'OVERDUE', left: 'left',
+    dropPreparing: '🔥 Preparing', dropReady: '✅ Ready',
+    dropOut: '🚗 Out for Delivery', dropDelivered: '🎉 Delivered', dropRejected: '❌ Rejected',
+  },
 };
+
+const getStatusConfig = (L: Record<string, string>): Record<string, { bg: string; icon: typeof Clock; label: string; next?: OrderStatus }> => ({
+  pending: { bg: 'bg-yellow-500', icon: Clock, label: L.pending },
+  accepted: { bg: 'bg-blue-400', icon: CheckCircle, label: L.accepted, next: 'preparing' },
+  preparing: { bg: 'bg-blue-600', icon: Flame, label: L.preparing, next: 'ready' },
+  ready: { bg: 'bg-green-500', icon: CheckCircle, label: L.ready },
+  out_for_delivery: { bg: 'bg-purple-500', icon: Truck, label: L.outForDelivery, next: 'delivered' },
+  delivered: { bg: 'bg-emerald-600', icon: ShieldCheck, label: L.done },
+  rejected: { bg: 'bg-red-600', icon: XCircle, label: L.rejected },
+});
 
 const ChefDashboard = () => {
   const { user, isAuthenticated } = useAuth();
@@ -36,6 +95,9 @@ const ChefDashboard = () => {
   const [expandedOrder, setExpandedOrder] = useState<string | null>(null);
   const [collapsedSections, setCollapsedSections] = useState<Record<string, boolean>>({});
   const [now, setNow] = useState(Date.now());
+  const [lang, setLang] = useState<Lang>('es');
+  const L = i18n[lang];
+  const statusConfig = getStatusConfig(L);
 
   // Tick every second for countdown timers
   useEffect(() => {
@@ -63,13 +125,13 @@ const ChefDashboard = () => {
   const { soundEnabled, toggleSound } = useOrderNotification(pendingCount);
 
   const sections: StatusSection[] = [
-    { key: 'pending', label: 'New Orders', emoji: '🔔', color: 'border-yellow-500', statuses: ['pending'] },
-    { key: 'preparing', label: 'Preparing', emoji: '🔥', color: 'border-blue-500', statuses: ['accepted', 'preparing'] },
-    { key: 'ready_pickup', label: 'Ready for Pickup', emoji: '📦', color: 'border-green-500', statuses: ['ready'] },
-    { key: 'ready_delivery', label: 'Ready for Delivery', emoji: '🚚', color: 'border-emerald-500', statuses: ['ready'] },
-    { key: 'out', label: 'Out for Delivery', emoji: '🚗', color: 'border-purple-500', statuses: ['out_for_delivery'] },
-    { key: 'done', label: 'Completed / Delivered', emoji: '🎉', color: 'border-muted-foreground', statuses: ['delivered'] },
-    { key: 'rejected', label: 'Rejected (Refunded)', emoji: '❌', color: 'border-red-500', statuses: ['rejected'] },
+    { key: 'pending', label: L.secNew, emoji: '🔔', color: 'border-yellow-500', statuses: ['pending'] },
+    { key: 'preparing', label: L.secPreparing, emoji: '🔥', color: 'border-blue-500', statuses: ['accepted', 'preparing'] },
+    { key: 'ready_pickup', label: L.secReadyPickup, emoji: '📦', color: 'border-green-500', statuses: ['ready'] },
+    { key: 'ready_delivery', label: L.secReadyDelivery, emoji: '🚚', color: 'border-emerald-500', statuses: ['ready'] },
+    { key: 'out', label: L.secOut, emoji: '🚗', color: 'border-purple-500', statuses: ['out_for_delivery'] },
+    { key: 'done', label: L.secDone, emoji: '🎉', color: 'border-muted-foreground', statuses: ['delivered'] },
+    { key: 'rejected', label: L.secRejected, emoji: '❌', color: 'border-red-500', statuses: ['rejected'] },
   ];
 
   const getOrdersForSection = (section: StatusSection) => {
@@ -81,9 +143,9 @@ const ChefDashboard = () => {
 
   const timeAgo = (date: Date) => {
     const mins = Math.floor((Date.now() - date.getTime()) / 60000);
-    if (mins < 1) return 'Just now';
-    if (mins < 60) return `${mins} min ago`;
-    return `${Math.floor(mins / 60)}h ago`;
+    if (mins < 1) return L.justNow;
+    if (mins < 60) return `${mins} ${L.minAgo}`;
+    return `${Math.floor(mins / 60)}${L.hAgo}`;
   };
 
   const getCountdown = (order: typeof orders[0]) => {
@@ -107,7 +169,7 @@ const ChefDashboard = () => {
             whileHover={{ scale: 1.03 }}
             whileTap={{ scale: 0.97 }}
           >
-            <CheckCircle size={14} /> Accept
+            <CheckCircle size={14} /> {L.accept}
           </motion.button>
           <motion.button
             onClick={(e) => { e.stopPropagation(); updateOrderStatus(orderId, 'rejected'); }}
@@ -115,7 +177,7 @@ const ChefDashboard = () => {
             whileHover={{ scale: 1.03 }}
             whileTap={{ scale: 0.97 }}
           >
-            <XCircle size={14} /> Reject
+            <XCircle size={14} /> {L.reject}
           </motion.button>
         </div>
       );
@@ -131,10 +193,10 @@ const ChefDashboard = () => {
 
     if (nextStatus) {
       const labels: Record<string, string> = {
-        accepted: '🔥 Start Preparing',
-        preparing: '✅ Mark Ready',
-        ready: orderType === 'delivery' ? '🚗 Out for Delivery' : '📦 Complete',
-        out_for_delivery: '✅ Delivered',
+        accepted: L.startPreparing,
+        preparing: L.markReady,
+        ready: orderType === 'delivery' ? L.outDelivery : L.complete,
+        out_for_delivery: L.delivered,
       };
       return (
         <motion.button
@@ -143,7 +205,7 @@ const ChefDashboard = () => {
           whileHover={{ scale: 1.03 }}
           whileTap={{ scale: 0.97 }}
         >
-          {labels[status] || 'Next'}
+          {labels[status] || L.next}
         </motion.button>
       );
     }
@@ -173,8 +235,8 @@ const ChefDashboard = () => {
                 <ChefHat size={22} className="text-primary" />
               </div>
               <div>
-                <h1 className="font-fredoka text-2xl text-foreground">Chef Dashboard</h1>
-                <p className="text-sm text-muted-foreground">Kitchen order management</p>
+                <h1 className="font-fredoka text-2xl text-foreground">{L.title}</h1>
+                <p className="text-sm text-muted-foreground">{L.subtitle}</p>
               </div>
             </div>
           </div>
@@ -190,13 +252,21 @@ const ChefDashboard = () => {
               title={soundEnabled ? 'Sound on — click to mute' : 'Sound off — click to unmute'}
             >
               {soundEnabled ? <Volume2 size={16} /> : <VolumeX size={16} />}
-              {soundEnabled ? 'Sound On' : 'Sound Off'}
+              {soundEnabled ? L.soundOn : L.soundOff}
+            </motion.button>
+            <motion.button
+              onClick={() => setLang(lang === 'es' ? 'en' : 'es')}
+              className="flex items-center gap-2 px-3 py-2 rounded-lg bg-fiesta-orange/10 text-fiesta-orange font-bold text-sm hover:bg-fiesta-orange/20 transition-colors"
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.97 }}
+            >
+              {lang === 'es' ? '🇺🇸 English' : '🇲🇽 Español'}
             </motion.button>
             <Link
               to="/admin"
               className="flex items-center gap-2 px-4 py-2 rounded-lg bg-primary/10 text-primary font-bold text-sm hover:bg-primary/20 transition-colors"
             >
-              Admin View
+              {L.adminView}
             </Link>
             <LogoutButton />
           </div>
@@ -206,12 +276,12 @@ const ChefDashboard = () => {
       <div className="container mx-auto px-4 py-6">
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 mb-6">
           {[
-            { label: 'Pending', count: pendingCount, color: 'bg-yellow-500' },
-            { label: 'Preparing', count: preparingCount, color: 'bg-blue-500' },
-            { label: 'Ready (Pickup)', count: readyOrders.filter(o => o.orderType !== 'delivery').length, color: 'bg-green-500' },
-            { label: 'Ready (Delivery)', count: readyOrders.filter(o => o.orderType === 'delivery').length, color: 'bg-emerald-500' },
-            { label: 'Out for Delivery', count: outCount, color: 'bg-purple-500' },
-            { label: 'Completed', count: deliveredOrders.length, color: 'bg-muted-foreground' },
+            { label: L.statPending, count: pendingCount, color: 'bg-yellow-500' },
+            { label: L.statPreparing, count: preparingCount, color: 'bg-blue-500' },
+            { label: L.statReadyPickup, count: readyOrders.filter(o => o.orderType !== 'delivery').length, color: 'bg-green-500' },
+            { label: L.statReadyDelivery, count: readyOrders.filter(o => o.orderType === 'delivery').length, color: 'bg-emerald-500' },
+            { label: L.statOut, count: outCount, color: 'bg-purple-500' },
+            { label: L.statCompleted, count: deliveredOrders.length, color: 'bg-muted-foreground' },
           ].map((s) => (
             <motion.div
               key={s.label}
@@ -259,11 +329,11 @@ const ChefDashboard = () => {
                       whileHover={{ scale: 1.03 }}
                       whileTap={{ scale: 0.97 }}
                     >
-                      <CheckCircle size={14} /> Accept All ({sectionOrders.length})
+                      <CheckCircle size={14} /> {L.acceptAll} ({sectionOrders.length})
                     </motion.button>
                     <motion.button
                       onClick={() => {
-                        if (confirm(`Reject all ${sectionOrders.length} pending orders? This will refund all payments.`)) {
+                        if (confirm(L.rejectAllConfirm)) {
                           sectionOrders.forEach((o) => updateOrderStatus(o.id, 'rejected'));
                         }
                       }}
@@ -271,7 +341,7 @@ const ChefDashboard = () => {
                       whileHover={{ scale: 1.03 }}
                       whileTap={{ scale: 0.97 }}
                     >
-                      <XCircle size={14} /> Reject All ({sectionOrders.length})
+                      <XCircle size={14} /> {L.rejectAll} ({sectionOrders.length})
                     </motion.button>
                   </div>
                 )}
@@ -279,7 +349,7 @@ const ChefDashboard = () => {
                 {!isCollapsed && (
                   <div className="space-y-3 pl-2">
                     {sectionOrders.length === 0 ? (
-                      <p className="text-sm text-muted-foreground py-4 text-center">No orders here</p>
+                      <p className="text-sm text-muted-foreground py-4 text-center">{L.noOrders}</p>
                     ) : (
                       <AnimatePresence mode="popLayout">
                         {sectionOrders.map((order) => {
@@ -311,11 +381,11 @@ const ChefDashboard = () => {
                                       <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${order.orderType === 'delivery' ? 'bg-blue-500/10 text-blue-500' : 'bg-primary/10 text-primary'
                                         }`}>
                                         {order.orderType === 'delivery' ? <Truck size={12} className="inline mr-1" /> : <ShoppingBag size={12} className="inline mr-1" />}
-                                        {order.orderType}
+                                        {order.orderType === 'delivery' ? L.delivery : L.pickup}
                                       </span>
                                     </div>
                                     <p className="text-sm text-muted-foreground">
-                                      {order.customerName} · {timeAgo(order.createdAt)} · {order.items.length} items · ${order.total.toFixed(2)}
+                                      {order.customerName} · {timeAgo(order.createdAt)} · {order.items.length} {L.items} · ${order.total.toFixed(2)}
                                     </p>
                                     {order.orderType === 'delivery' && order.deliveryAddress && (
                                       <p className="text-xs text-blue-500 font-bold mt-0.5 flex items-center gap-1">
@@ -324,7 +394,7 @@ const ChefDashboard = () => {
                                     )}
                                     {order.orderType !== 'delivery' && order.pickupTime && (
                                       <p className="text-xs text-primary font-bold mt-0.5 flex items-center gap-1">
-                                        🕐 Pickup: {order.pickupTime}{order.pickupDate ? ` · ${order.pickupDate}` : ''}
+                                        🕐 {L.pickup}: {order.pickupTime}{order.pickupDate ? ` · ${order.pickupDate}` : ''}
                                       </p>
                                     )}
                                     {(() => {
@@ -334,7 +404,7 @@ const ChefDashboard = () => {
                                         <div className={`flex items-center gap-1.5 mt-1 text-xs font-bold ${cd.isOverdue ? 'text-destructive animate-pulse' : cd.isUrgent ? 'text-yellow-500' : 'text-muted-foreground'
                                           }`}>
                                           <Timer size={12} />
-                                          {cd.isOverdue ? 'OVERDUE' : `${String(cd.mins).padStart(2, '0')}:${String(cd.secs).padStart(2, '0')} left`}
+                                          {cd.isOverdue ? L.overdue : `${String(cd.mins).padStart(2, '0')}:${String(cd.secs).padStart(2, '0')} ${L.left}`}
                                         </div>
                                       );
                                     })()}
@@ -347,7 +417,7 @@ const ChefDashboard = () => {
                                     onChange={(e) => {
                                       const newStatus = e.target.value as OrderStatus;
                                       if (newStatus === 'rejected' && order.status !== 'rejected') {
-                                        if (!confirm('Reject this order? Payment will be refunded.')) {
+                                        if (!confirm(L.rejectOneConfirm)) {
                                           e.target.value = order.status;
                                           return;
                                         }
@@ -356,11 +426,11 @@ const ChefDashboard = () => {
                                     }}
                                     className="px-2 py-1.5 rounded-lg border border-border bg-muted/50 text-xs font-bold text-foreground cursor-pointer focus:outline-none focus:ring-2 focus:ring-ring"
                                   >
-                                    <option value="preparing">🔥 Preparing</option>
-                                    <option value="ready">✅ Ready</option>
-                                    <option value="out_for_delivery">🚗 Out for Delivery</option>
-                                    <option value="delivered">🎉 Delivered</option>
-                                    <option value="rejected">❌ Rejected</option>
+                                    <option value="preparing">{L.dropPreparing}</option>
+                                    <option value="ready">{L.dropReady}</option>
+                                    <option value="out_for_delivery">{L.dropOut}</option>
+                                    <option value="delivered">{L.dropDelivered}</option>
+                                    <option value="rejected">{L.dropRejected}</option>
                                   </select>
                                   {getActionButton(order.id, order.status, order.orderType)}
                                 </div>
@@ -378,33 +448,33 @@ const ChefDashboard = () => {
                                     <div className="p-4 space-y-3">
                                       <div className="grid grid-cols-2 gap-3 text-sm">
                                         <div>
-                                          <p className="text-muted-foreground">📞 Phone</p>
+                                          <p className="text-muted-foreground">{L.phone}</p>
                                           <p className="font-bold text-foreground">{order.customerPhone}</p>
                                         </div>
                                         <div>
-                                          <p className="text-muted-foreground">✉️ Email</p>
+                                          <p className="text-muted-foreground">{L.email}</p>
                                           <p className="font-bold text-foreground">{order.customerEmail}</p>
                                         </div>
                                         {order.deliveryAddress && (
                                           <div className="col-span-2">
-                                            <p className="text-muted-foreground">📍 Delivery Address</p>
+                                            <p className="text-muted-foreground">{L.deliveryAddr}</p>
                                             <p className="font-bold text-foreground">{order.deliveryAddress}</p>
                                           </div>
                                         )}
                                         {order.pickupDate && (
                                           <div>
-                                            <p className="text-muted-foreground">📅 Pickup Date</p>
+                                            <p className="text-muted-foreground">{L.pickupDate}</p>
                                             <p className="font-bold text-foreground">{order.pickupDate}</p>
                                           </div>
                                         )}
                                         {order.pickupTime && (
                                           <div>
-                                            <p className="text-muted-foreground">🕐 Pickup Time</p>
+                                            <p className="text-muted-foreground">{L.pickupTime}</p>
                                             <p className="font-bold text-foreground">{order.pickupTime}</p>
                                           </div>
                                         )}
                                         <div>
-                                          <p className="text-muted-foreground flex items-center gap-1"><Timer size={14} /> Prep Time</p>
+                                          <p className="text-muted-foreground flex items-center gap-1"><Timer size={14} /> {L.prepTime}</p>
                                           <div className="flex items-center gap-2 mt-1">
                                             <motion.button
                                               type="button"
@@ -427,7 +497,7 @@ const ChefDashboard = () => {
                                         </div>
                                       </div>
                                       <div className="border-t border-border/50 pt-3">
-                                        <p className="text-xs font-bold text-muted-foreground mb-2 uppercase">Items</p>
+                                        <p className="text-xs font-bold text-muted-foreground mb-2 uppercase">{L.items}</p>
                                         {order.items.map((item, i) => (
                                           <div key={i} className="flex items-center justify-between py-2 border-b border-border/30 last:border-0">
                                             <span className="font-bold text-foreground">
