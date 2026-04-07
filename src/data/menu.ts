@@ -12,34 +12,16 @@ export interface MenuItem {
   name: string;
   description: string;
   price: number;
-  category: 'bebidas' | 'antojitos' | 'helados';
+  category: 'antojitos';
   emoji: string;
 }
 
 export const menuItems: MenuItem[] = [
-  // Bebidas (Drinks)
-  { id: 'b1', name: 'Mangonada', description: 'Mango sorbet blended with chamoy, fresh mango chunks, lime & tajín', price: 7.99, category: 'bebidas', emoji: '🥭' },
-  { id: 'b2', name: 'Agua de Horchata', description: 'Classic cinnamon rice drink — refreshing & creamy', price: 4.99, category: 'bebidas', emoji: '🥛' },
-  { id: 'b3', name: 'Agua de Jamaica', description: 'Hibiscus flower iced tea — sweet & tangy', price: 4.49, category: 'bebidas', emoji: '🌺' },
-  { id: 'b4', name: 'Jugo de Naranja', description: 'Freshly squeezed orange juice', price: 5.99, category: 'bebidas', emoji: '🍊' },
-  { id: 'b5', name: 'Licuado de Fresa', description: 'Strawberry smoothie blended with milk', price: 6.49, category: 'bebidas', emoji: '🍓' },
-  { id: 'b6', name: 'Mango con Chile', description: 'Fresh mango juice with chili & lime', price: 5.99, category: 'bebidas', emoji: '🌶️' },
-
   // Antojitos (Kitchen Prepared Items)
-  { id: 'a1', name: 'Papas Locas', description: 'Fries loaded with repollo, mayonesa, jitomate, cueritos, jamón, elote y queso', price: 8.99, category: 'antojitos', emoji: '🍟' },
-  { id: 'a2', name: 'Chicharrón Preparado', description: 'Crispy chicharrón topped with mayonesa, repollo, jitomate, cueritos, aguacate y jamón', price: 7.99, category: 'antojitos', emoji: '🫓' },
-  { id: 'a3', name: 'Elote en Vaso', description: 'Corn in a cup with mayo, cotija cheese, chili & lime', price: 5.49, category: 'antojitos', emoji: '🌽' },
-  { id: 'a4', name: 'Tostilocos', description: 'Tostitos with cucumber, jicama, chamoy & Japanese peanuts', price: 6.99, category: 'antojitos', emoji: '🥒' },
-  { id: 'a5', name: 'Fruta con Chile', description: 'Fresh cut fruit with chili, lime & chamoy', price: 5.99, category: 'antojitos', emoji: '🍉' },
-  { id: 'a6', name: 'Nachos con Queso', description: 'Loaded nachos with melted cheese & jalapeños', price: 7.49, category: 'antojitos', emoji: '🧀' },
-
-  // Helados (Frozen Treats)
-  { id: 'h1', name: 'Paleta de Fresa', description: 'Strawberry ice cream bar — La Michoacana style', price: 3.49, category: 'helados', emoji: '🍓' },
-  { id: 'h2', name: 'Paleta de Mango Chile', description: 'Mango ice cream bar with chili — spicy & sweet', price: 3.49, category: 'helados', emoji: '🥭' },
-  { id: 'h3', name: 'Paleta de Coco', description: 'Coconut cream ice cream bar', price: 3.49, category: 'helados', emoji: '🥥' },
-  { id: 'h4', name: 'Paleta de Limón', description: 'Lime sorbet popsicle — refreshing & tangy', price: 3.49, category: 'helados', emoji: '🍋' },
-  { id: 'h5', name: 'Paleta de Arroz con Leche', description: 'Rice pudding flavored ice cream bar', price: 3.49, category: 'helados', emoji: '🍚' },
-  { id: 'h6', name: 'Paleta de Chocolate', description: 'Rich chocolate ice cream bar', price: 3.49, category: 'helados', emoji: '🍫' },
+  { id: 'a1', name: 'Mango en Vaso', description: 'Fresh mango with chamoy, limón, tajín, vanderilla de tamarindo y tamarinditos', price: 8, category: 'antojitos', emoji: '🥭' },
+  { id: 'a2', name: 'Fruta Mix', description: 'Mixed fresh fruit with chamoy, limón y tajín', price: 12, category: 'antojitos', emoji: '🍓' },
+  { id: 'a3', name: 'Chicharrón Preparado', description: 'Crispy chicharrón topped with mayonesa, repollo, jitomate, cueritos, aguacate y jamón', price: 10, category: 'antojitos', emoji: '🫓' },
+  { id: 'a4', name: 'Papas Locas', description: 'Fries loaded with repollo, mayonesa, jitomate, cueritos, jamón, elote y queso', price: 13, category: 'antojitos', emoji: '🍟' },
 ];
 
 export interface CandyVariant {
